@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// Hand-curated for now. Easy to lift into a content collection later.
+const projects = [
+  {
+    name: 'Hermes Agent',
+    href: 'https://hermes-agent.nousresearch.com/',
+    summary:
+      'Long-running personal agent runtime with persistent memory, scheduled jobs, and gateway integrations across Discord, Signal, and more.',
+    status: 'Active',
+  },
+  {
+    name: 'AIgregator',
+    href: 'https://aigregator.news/',
+    summary:
+      'Daily AI news digest, written by a scheduled agent and shipped as a static site each morning.',
+    status: 'Active',
+  },
+  {
+    name: 'ABT Tabarnak',
+    href: '#',
+    summary:
+      'Site-to-site VPN travel router experiment — GL.iNet OpenWrt + FortiGate IPsec + Tailscale, with the route table to prove it.',
+    status: 'Stabilizing',
+  },
+];
+---
+<BaseLayout title="Projects" description="What I'm currently building or maintaining.">
+  <section class="container">
+    <h1>Projects</h1>
+    <p class="muted">A short list of what I'm building or maintaining right now.</p>
+    <ul class="project-list">
+      {projects.map((p) => (
+        <li>
+          <div class="row">
+            <h2><a href={p.href}>{p.name}</a></h2>
+            <span class="tag">{p.status}</span>
+          </div>
+          <p>{p.summary}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .project-list { list-style: none; padding: 0; margin: 1.5rem 0; display: grid; gap: 1rem; }
+  .project-list li {
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-elev);
+  }
+  .row { display: flex; gap: 0.75rem; align-items: baseline; justify-content: space-between; }
+  .row h2 { margin: 0; font-size: 1.15rem; }
+</style>

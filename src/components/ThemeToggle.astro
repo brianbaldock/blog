@@ -1,0 +1,67 @@
+---
+// Theme toggle. Cycles light → dark → system.
+// Inline script keeps it tiny; uses data-theme attribute on <html>.
+---
+<button
+  id="theme-toggle"
+  type="button"
+  aria-label="Toggle color theme"
+  title="Toggle color theme"
+  class="theme-toggle"
+>
+  <span aria-hidden="true" id="theme-toggle-icon">◐</span>
+  <span class="visually-hidden">Toggle color theme</span>
+</button>
+
+<style>
+  .theme-toggle {
+    background: var(--bg-elev);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.35rem 0.6rem;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .theme-toggle:hover { border-color: var(--accent); }
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    const KEY = 'theme';
+    const root = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const icon = document.getElementById('theme-toggle-icon');
+
+    function apply(t) {
+      if (t === 'system') {
+        root.removeAttribute('data-theme');
+      } else {
+        root.setAttribute('data-theme', t);
+      }
+      if (icon) icon.textContent = t === 'light' ? '☀' : t === 'dark' ? '☾' : '◐';
+    }
+
+    const stored = localStorage.getItem(KEY) || 'system';
+    apply(stored);
+
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const cur = localStorage.getItem(KEY) || 'system';
+        const next = cur === 'system' ? 'light' : cur === 'light' ? 'dark' : 'system';
+        localStorage.setItem(KEY, next);
+        apply(next);
+      });
+    }
+  })();
+</script>

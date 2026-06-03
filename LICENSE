@@ -19,3 +19,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+The MIT License above applies to the **code** in this repository: site
+scaffolding, components, build scripts, configuration, and any code snippets
+embedded in posts.
+
+The **written content** of the blog posts (prose, images, illustrations) is
+licensed separately under Creative Commons Attribution 4.0 International
+(CC BY 4.0). See LICENSE-content.md for the full terms.

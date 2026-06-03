@@ -1,0 +1,79 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { Image } from 'astro:assets';
+
+interface Props {
+  title: string;
+  description?: string;
+  pubDate: Date;
+  updatedDate?: Date;
+  cover?: ImageMetadata | string;
+  coverAlt?: string;
+  tags?: string[];
+  canonicalUrl?: string;
+  readingTime?: string;
+}
+
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  cover,
+  coverAlt,
+  tags = [],
+  canonicalUrl,
+  readingTime,
+} = Astro.props;
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalUrl={canonicalUrl}
+  ogImage={typeof cover === 'string' ? cover : cover?.src}
+>
+  <article class="container">
+    <header class="post-header">
+      <h1>{title}</h1>
+      <p class="subtle">
+        <time datetime={pubDate.toISOString()}>{fmt(pubDate)}</time>
+        {updatedDate && (
+          <>
+            {' · '}updated <time datetime={updatedDate.toISOString()}>{fmt(updatedDate)}</time>
+          </>
+        )}
+        {readingTime && <> · {readingTime}</>}
+      </p>
+      {tags.length > 0 && (
+        <p class="tags">
+          {tags.map((t) => <span class="tag">{t}</span>)}
+        </p>
+      )}
+      {cover && (
+        typeof cover === 'string'
+          ? <img src={cover} alt={coverAlt ?? ''} class="cover" loading="eager" />
+          : <Image src={cover} alt={coverAlt ?? ''} class="cover" loading="eager" widths={[480, 720, 1080, 1440]} sizes="(max-width: 768px) 100vw, 720px" />
+      )}
+    </header>
+    <div class="post-body">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .post-header { margin-top: 2rem; margin-bottom: 1.5rem; }
+  .post-header h1 { margin-bottom: 0.4rem; }
+  .cover {
+    width: 100%;
+    height: auto;
+    margin-top: 1.5rem;
+    border-radius: 8px;
+  }
+  .tags { margin: 0.5rem 0 0; }
+  .post-body { margin-top: 1rem; }
+  .post-body :global(h2) { margin-top: 2em; }
+</style>
