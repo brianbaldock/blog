@@ -2,9 +2,30 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout title="Not found" noindex>
-  <section class="container" style="text-align:center; padding: 4rem 1rem;">
-    <p style="font-size: 4rem; margin: 0;" aria-hidden="true">🐊🌮</p>
-    <h1>The alligator ate this page.</h1>
+  <section class="container not-found">
+    <img
+      src="/mascot/mascot-404.png"
+      alt="The mascot alligator looking confused next to a dropped, empty taco shell"
+      width="320"
+      height="320"
+      class="mascot"
+      loading="eager"
+      decoding="async"
+    />
+    <h1>The alligator dropped this page.</h1>
     <p class="muted">It happens. Try <a href="/">the front page</a> or <a href="/posts/">the post archive</a>.</p>
   </section>
 </BaseLayout>
+
+<style>
+  .not-found {
+    text-align: center;
+    padding: 3rem 1rem 5rem;
+  }
+  .mascot {
+    width: min(320px, 80vw);
+    height: auto;
+    margin: 0 auto 1.5rem;
+    display: block;
+  }
+</style>
