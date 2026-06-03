@@ -2,7 +2,7 @@
 title: "Learning Fine-Tuning on Nvidia DGX Spark - Part 1"
 seoTitle: "Fine-Tuning on Nvidia DGX Spark: Part 1"
 seoDescription: "Learn to set up NVIDIA AI Workbench on DGX Spark for fine-tuning modern AI models with a CUDA-enabled PyTorch environment"
-datePublished: Sat Jan 24 2026 05:38:21 GMT+0000 (Coordinated Universal Time)
+datePublished: 2026-01-24T05:38:21.721Z
 cuid: cmkrvpi8p000l02l4ecopd13n
 slug: learning-fine-tuning-on-nvidia-dgx-spark-part-1
 cover: https://cdn.hashnode.com/res/hashnode/image/upload/v1769233000568/97e46a8f-7d96-4246-8d94-44717faf8150.png
