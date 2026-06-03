@@ -148,7 +148,12 @@ th { background: var(--bg-elev); }
   margin: 0 auto;
   padding: 0 1.25rem;
 }
-.container-wide { max-width: 960px; }
+.container-wide {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
 
 .skip-link {
   position: absolute;
