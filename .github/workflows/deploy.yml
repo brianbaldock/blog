@@ -56,7 +56,7 @@ jobs:
           echo "Server did not start"; exit 1
 
       - name: Run pa11y-ci
-        run: npx pa11y-ci --config .pa11yci.cjs
+        run: npx pa11y-ci --config .pa11yci.json
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main'
