@@ -1,5 +1,5 @@
 ---
-title: "Welcome — new home for the blog"
+title: "Welcome: new home for the blog"
 description: "Moving from Hashnode to a self-hosted Astro site on GitHub Pages, and what to expect next."
 pubDate: 2026-06-03
 tags: ["meta", "site-news"]

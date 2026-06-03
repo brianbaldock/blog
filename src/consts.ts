@@ -1,8 +1,8 @@
 export const SITE = {
   title: 'Brian Baldock',
-  tagline: 'Notes from the workshop — security, AI, and the occasional alligator with a taco.',
+  tagline: 'Notes from the workshop. Security, AI, and the occasional alligator with a taco.',
   description:
-    'Personal blog by Brian Baldock — security, AI/ML infrastructure, and the lessons that come from building in the open.',
+    'Personal blog by Brian Baldock on security, AI/ML infrastructure, and the lessons that come from building in the open.',
   url: 'https://blog.brianbaldock.net',
   author: 'Brian Baldock',
   authorUrl: 'https://www.linkedin.com/in/brianbaldock/',
