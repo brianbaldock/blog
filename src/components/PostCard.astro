@@ -1,0 +1,92 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  description?: string;
+  pubDate: Date;
+  cover?: string;
+  coverAlt?: string;
+  tags?: string[];
+  featured?: boolean;
+}
+const { href, title, description, pubDate, cover, coverAlt, tags = [], featured = false } = Astro.props;
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+<article class={featured ? 'card card-featured' : 'card'}>
+  <a href={href} class="card-link" aria-label={title}>
+    {cover && (
+      <div class="card-media">
+        <img src={cover} alt={coverAlt ?? ''} loading="lazy" decoding="async" />
+      </div>
+    )}
+    <div class="card-body">
+      {tags.length > 0 && (
+        <p class="card-tags">
+          {tags.slice(0, 2).map((t) => <span class="tag">{t}</span>)}
+        </p>
+      )}
+      <h3 class="card-title">{title}</h3>
+      {description && <p class="card-desc">{description}</p>}
+      <p class="card-meta">
+        <time datetime={pubDate.toISOString()}>{fmt(pubDate)}</time>
+      </p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-elev);
+    box-shadow: var(--shadow);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .card-link { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: var(--fg); }
+  .card-media {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .card-media img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 0;
+    transition: transform 0.4s ease;
+  }
+  .card:hover .card-media img { transform: scale(1.03); }
+  .card-body { padding: 1rem 1.15rem 1.15rem; display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+  .card-tags { margin: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .tag {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+  }
+  .card-title { margin: 0; font-size: 1.2rem; line-height: 1.3; }
+  .card-desc { margin: 0; color: var(--fg-muted); font-size: 0.95rem; line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-meta { margin: auto 0 0; color: var(--fg-muted); font-size: 0.85rem; }
+
+  /* Featured (homepage hero) */
+  .card-featured .card-media { aspect-ratio: 21 / 9; }
+  .card-featured .card-title { font-size: 1.75rem; }
+  .card-featured .card-desc { font-size: 1.05rem; -webkit-line-clamp: 4; }
+  @media (min-width: 720px) {
+    .card-featured .card-link { flex-direction: row; }
+    .card-featured .card-media { flex: 1 1 55%; aspect-ratio: auto; border-bottom: 0; border-right: 1px solid var(--border); }
+    .card-featured .card-body { flex: 1 1 45%; padding: 1.75rem; justify-content: center; }
+    .card-featured .card-title { font-size: 2rem; }
+  }
+</style>

@@ -1,70 +1,81 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
 import { getCollection } from 'astro:content';
-const posts = (await getCollection('posts', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
-  .slice(0, 5);
 
-const fmt = (d: Date) =>
-  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+const posts = (await getCollection('posts', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+const [featured, ...rest] = posts;
+const recent = rest.slice(0, 6);
 ---
 <BaseLayout>
-  <section class="container hero">
+  <section class="container-wide hero">
+    <p class="eyebrow">Identity · Security · AI infrastructure</p>
     <h1>Hi, I'm Brian.</h1>
     <p class="lede">
-      I work on identity, security, and AI infrastructure. This is where I write
-      down the things I learn — usually after I've made the mistake first.
-    </p>
-    <p>
-      You can find longer posts under <a href="/posts/">writing</a>, what I'm
-      currently building under <a href="/projects/">projects</a>, or the short
-      version under <a href="/about/">about</a>.
+      I write down the things I learn — usually after I've made the mistake first.
+      Long-form posts on what I'm building, breaking, and defending.
     </p>
   </section>
 
-  <section class="container">
-    <h2>Recent posts</h2>
-    {posts.length === 0 ? (
-      <p class="muted">Nothing published yet. Drafts are cooking.</p>
-    ) : (
-      <ul class="post-list">
-        {posts.map((post) => (
-          <li>
-            <a href={`/posts/${post.id}/`}>
-              <h3>{post.data.title}</h3>
-              <p class="subtle">
-                <time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time>
-              </p>
-              {post.data.description && <p class="muted">{post.data.description}</p>}
-            </a>
-          </li>
+  {featured && (
+    <section class="container-wide">
+      <h2 class="section-heading"><span>Featured</span></h2>
+      <PostCard
+        href={`/posts/${featured.id}/`}
+        title={featured.data.title}
+        description={featured.data.description}
+        pubDate={featured.data.pubDate}
+        cover={featured.data.cover}
+        coverAlt={featured.data.coverAlt}
+        tags={featured.data.tags}
+        featured
+      />
+    </section>
+  )}
+
+  {recent.length > 0 && (
+    <section class="container-wide">
+      <h2 class="section-heading"><span>Recent posts</span></h2>
+      <div class="grid">
+        {recent.map((post) => (
+          <PostCard
+            href={`/posts/${post.id}/`}
+            title={post.data.title}
+            description={post.data.description}
+            pubDate={post.data.pubDate}
+            cover={post.data.cover}
+            coverAlt={post.data.coverAlt}
+            tags={post.data.tags}
+          />
         ))}
-      </ul>
-    )}
-    <p><a href="/posts/">All posts →</a></p>
-  </section>
+      </div>
+      <p class="more"><a href="/posts/">Browse all posts →</a></p>
+    </section>
+  )}
 </BaseLayout>
 
 <style>
-  .hero { margin-top: 3rem; margin-bottom: 3rem; }
-  .lede { font-size: 1.15rem; color: var(--fg-muted); }
-  .post-list {
-    list-style: none;
-    padding: 0;
-    margin: 1.5rem 0;
+  .hero { margin-top: 2.5rem; margin-bottom: 2.5rem; }
+  .eyebrow {
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-size: 0.78rem; color: var(--accent); margin: 0 0 0.5rem;
+  }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 0 0 0.75rem; }
+  .lede { font-size: 1.15rem; color: var(--fg-muted); max-width: 56ch; }
+  .section-heading {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 2.5rem 0 1.25rem; font-size: 1rem;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted);
+  }
+  .section-heading::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .grid {
     display: grid;
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
   }
-  .post-list li a {
-    display: block;
-    padding: 1rem 1.25rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    text-decoration: none;
-    color: var(--fg);
-    background: var(--bg-elev);
-    box-shadow: var(--shadow);
-  }
-  .post-list li a:hover { border-color: var(--accent); }
-  .post-list h3 { margin: 0 0 0.25rem; }
+  .more { margin-top: 1.75rem; text-align: right; }
 </style>
