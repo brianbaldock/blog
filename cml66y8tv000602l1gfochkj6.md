@@ -2,7 +2,7 @@
 title: "Learning Fine-Tuning on Nvidia DGX Spark - Part 2"
 seoTitle: "Fine-Tuning with Nvidia DGX Spark"
 seoDescription: "Troubleshoot Nvidia DGX Spark setup issues and improve your AI Workbench custom container with these step-by-step solutions for a usable environment"
-datePublished: Tue Feb 03 2026 06:01:51 GMT+0000 (Coordinated Universal Time)
+datePublished: 2026-02-03T06:01:51.667Z
 cuid: cml66y8tv000602l1gfochkj6
 slug: learning-fine-tuning-on-nvidia-dgx-spark-part-2
 cover: https://cdn.hashnode.com/res/hashnode/image/upload/v1770096843023/f9236764-26c5-400b-bc92-23f43b38e2a4.png
