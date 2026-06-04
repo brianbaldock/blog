@@ -1,6 +1,6 @@
 ---
-title: "How I got Quebec TV in Seattle without my Chromecast knowing it moved"
-description: "A dedicated wifi SSID that routes every joined device through a Quebec FortiGate over IPsec, so streaming services geo-detect as Canadian and the Chromecast never has to think about it."
+title: "A pocket router that gives me a trusted wifi anywhere I go"
+description: "A dedicated SSID that tunnels every joined device back through a network I actually control, so untrusted hotel and coffee-shop wifi stops being a thing I have to think about. And by total coincidence, the Chromecast at home thinks it lives somewhere it can watch what I pay for."
 pubDate: "2026-06-04T03:30:00.000Z"
 tags:
   - "networking"
@@ -8,32 +8,34 @@ tags:
   - "vpn"
   - "openwrt"
   - "ipsec"
-slug: "quebec-tv-in-seattle-travel-router"
+slug: "trusted-wifi-anywhere-travel-router"
 draft: true
 ---
 
 ## Why this exists
 
-I'm in Seattle. The streaming services I pay for in Quebec want me to be in Quebec. The Chromecast doesn't care about geopolitics, it just plays whatever the app tells it to, and the app gets told what to do by DNS and by the IP it appears to be coming from. Make both of those look Canadian and the picture shows up.
+I do not trust most of the wifi I end up on. Hotel networks, conference networks, the airport, the coffee shop, the in-law's flat router that hasn't been updated since 2018. They all do the same thing: hand me a default route into a network full of other devices I know nothing about, and watch what I send over the air.
 
-Easy version: VPN on the phone. Done in three taps. But then the Chromecast is on its own, the cast handshake goes weird across networks, and every device in the house has to remember to flip a VPN on before family movie night. That's a chore tax I'm not paying.
+The easy version is a VPN client on each device. Done in three taps, and I do that for my laptop and phone anyway. But "each device" is the problem. The work laptop has one, the personal laptop has another, the kid's tablet doesn't, the Chromecast can't, the e-reader has no idea what a VPN is. And every time I sit down somewhere new, I'm re-toggling them.
 
-So: a dedicated SSID called `CanadaExit-WiFi`. Anything joined to it routes out a Quebec FortiGate by default, including DNS. Anything on my normal wifi behaves like it always did. The Chromecast lives on `CanadaExit-WiFi` forever and never knows it isn't in Quebec.
+So: a dedicated SSID called `CanadaExit-WiFi`. Anything that joins it gets tunneled back to a network I run, on hardware I trust, with DNS I trust, before it touches the internet. The phone joins it and behaves like it's at home. The Chromecast joins it and behaves like it's at home. The kid's tablet joins it once and never has to think about it again.
+
+There is also, theoretically, a side benefit: because the network it tunnels back to happens to live in Quebec, anything that geo-detects on IP or DNS thinks the device is in Quebec. I am not going to belabor this point. You can imagine what that's useful for.
 
 ## "Yeah, I know, why not just use your phone hotspot?"
 
-Fair question. That's the version with the lowest barrier to entry, and for a one-off "I'm in a hotel and want to watch one show" it's the right call. For an always-on living-room setup, the seams show fast:
+Fair question. The phone hotspot is the path of least resistance and for a one-off "I need ten minutes of trusted internet in a coffee shop" it's the right call. For everything else, the seams show fast:
 
-- **The Chromecast doesn't follow.** Casting relies on the phone and the receiver being on the same network with mDNS reachable. The moment the phone tethers, the Chromecast is on the house wifi and the phone is on cellular. They can't see each other. You end up casting from the phone's browser to nothing.
-- **The phone has to be home, on, and tethering.** Family movie night becomes "where's dad's phone." Walk to the kitchen mid-episode, take a call, plug it in to the wrong charger, and the TV blanks.
-- **Everything on the phone goes through Quebec, not just the streaming.** Maps, work email, the doorbell app, the kid's tablet you tethered to the same hotspot. All of it routing through a Canadian exit. That's a privacy and latency tax on traffic that has no business being there.
-- **Cellular geolocation is not necessarily Canadian.** Just because the SIM is on a Canadian plan does not mean the carrier-NAT egress IP geolocates to Canada. Carriers aggregate to regional pops and the IP databases don't always agree with the billing address. You'll know within the first 30 seconds of a stream attempt.
-- **Data caps and throttling.** A 1080p stream is roughly 3 GB/hour. Two hours a night, four nights a week, and you've burned through whatever "unlimited" means on your plan. Hotspot data is usually the first thing throttled.
-- **Battery and thermal.** A phone running hotspot plus active VPN for a two-hour movie gets hot and dies. Now you're also tethering it to a charger, which means it lives next to the TV, which means it isn't with you.
-- **Re-pair every time.** No persistent SSID means every device that wants the Canadian exit has to be told about the hotspot, every time, with the rotating password.
-- **It doesn't scale past one user.** Wife wants to watch something Canadian on her iPad while I'm watching something Canadian on the TV. Now we need two hotspots, or one of us is sharing my phone's battery.
+- **The phone has to be on, charged, and tethering.** Anything that needs trusted wifi for more than fifteen minutes becomes a battery and thermal problem. The phone gets hot, dies, and now the entire household's internet died with it.
+- **Multi-device casting and mDNS break.** Anything that relies on devices discovering each other on the same network falls apart when half the devices are on cellular through the phone and the other half are on the local wifi. Casting, AirPlay, printers, smart-home pairing, all of it.
+- **Re-pair every time.** No persistent SSID means every device gets re-introduced to a new network with a new password every trip. The kid's tablet, the e-reader, the streaming stick, the work laptop. Every. Trip.
+- **Doesn't scale past one user.** The moment a second person wants trusted internet, you are either standing up a second hotspot or sharing one phone's battery and bandwidth across two people's days.
+- **Data caps and throttling.** "Unlimited" hotspot data isn't, and the throttle hits exactly when you'd notice it.
+- **Everything on the phone routes through the tunnel by accident.** Maps, work email, the doorbell app, every background sync the phone makes for its own reasons. That's a latency and battery tax on traffic that has no business being in the tunnel.
+- **Cellular egress is not the same as your home egress.** Even with a "Canadian SIM" or whatever clever provisioning trick, carrier-NAT aggregates to regional pops and the public IP can land anywhere. Anything that cares about the appearance of geography won't get a reliable answer from cellular.
+- **The Chromecast and TV stick can't join a phone hotspot meaningfully.** They want a persistent SSID on a stable network. Phone hotspot is the opposite of that on both counts.
 
-The dedicated SSID solves all of that by making the Canadian exit a property of the *network*, not the *device*. Join the wifi, you're in Quebec. Leave it, you're in Seattle. The phone stays a phone.
+The dedicated SSID solves all of it by making the trust property of the *network*, not the device. Join the wifi, you're inside. Leave it, you're not. The phone stays a phone.
 
 ## The hardware
 
@@ -59,7 +61,7 @@ Then I checked browserleaks.com/dns.
 
 Seattle.
 
-The web traffic was riding the tunnel. The DNS queries telling the web traffic *where to go* were not. The streaming services were doing geo-detection on the resolver IP, not the client IP, so they were still sending me the "this content isn't available in your region" page even though I was technically *in* their region as far as the TCP handshake was concerned.
+The web traffic was riding the tunnel. The DNS queries telling the web traffic *where to go* were not. From a privacy standpoint, that means my browsing history is still being narrated to whoever runs the resolver on the untrusted wifi. From the side-benefit standpoint, anything that geo-detects on the resolver IP still sees me as Seattle regardless of where the TCP handshake came from.
 
 ### Why this happens
 
@@ -84,7 +86,7 @@ uci commit dhcp
 /etc/init.d/dnsmasq restart
 ```
 
-The `@192.168.9.1` tells dnsmasq to source-bind upstream queries to the wifi-subnet IP. That address is inside the selector. xfrm encrypts. The query goes to Quebec, exits via the FortiGate, and hits a Canadian 1.1.1.1 node. Streaming services now see a Canadian resolver and a Canadian client IP, and the content unlocks.
+The `@192.168.9.1` tells dnsmasq to source-bind upstream queries to the wifi-subnet IP. That address is inside the selector. xfrm encrypts. The query rides the tunnel out the far side, and the resolver only ever sees the far-side egress IP. The local wifi sees encrypted UDP/4500 and nothing else.
 
 `noresolv=1` is the second half of the fix. It prevents dnsmasq from silently falling back to `/tmp/resolv.conf.d/resolv.conf.auto`, which only contains the WAN gateway and would leak the moment your configured upstreams flap.
 
@@ -96,11 +98,11 @@ Real test, in order:
 
 ```sh
 # from a client joined to CanadaExit-WiFi
-curl https://ifconfig.me                    # must show FortiGate's wan IP
-curl https://browserleaks.com/dns           # must show a Canadian resolver
+curl https://ifconfig.me                    # must show the far-side egress IP
+curl https://browserleaks.com/dns           # must show a resolver on the far side too
 ```
 
-If both pass, streaming will geo-detect correctly. If only the first passes, the IP is right but DNS is leaking and Netflix-equivalent will still refuse.
+If both pass, the device is fully wrapped. If only the first passes, the IP is right but DNS is leaking, and anything paying attention to your resolver (including, but not limited to, the local wifi operator) still knows what you are looking up.
 
 ## Clients that ignore your resolver
 
@@ -222,10 +224,10 @@ The lesson: when the answer to "do I need this layer" is "it would be cleaner," 
 
 ## What this looks like in practice
 
-- Phone joins `CanadaExit-WiFi`. Browser shows a Canadian IP. Streaming services show the Canadian library. Chromecast on the same SSID receives a cast and plays it.
-- Phone joins normal household wifi. Everything is Seattle, fast, normal.
-- Router itself stays on the household WAN for management, Tailscale, and updates. The IPsec tunnel only exists for traffic that originates from `192.168.9.0/24`.
-- The household network has no idea the Quebec exit exists. The Quebec exit has no idea about anything except `192.168.9.0/24`.
+- Phone joins `CanadaExit-WiFi`. Browser shows the far-side egress IP. DNS resolves through the far-side resolver. mDNS and casting work because every device on that SSID is on the same logical network.
+- Phone joins whatever wifi happens to be local, normal or otherwise. The travel router stays out of it. Nothing is tunneled.
+- Router itself stays on the local wifi for management, Tailscale, and updates. The IPsec tunnel only carries traffic that originates from `192.168.9.0/24`.
+- The local wifi sees an encrypted blob to one IP and has no visibility into anything beyond that. The far side sees one source subnet, `192.168.9.0/24`, and nothing about the local environment.
 
 End-state verification on the router:
 
@@ -252,6 +254,6 @@ root@GL-A1300:~# curl --interface 192.168.9.1 https://ifconfig.me
 - Tailscale on the router as an exit node, routed *around* the IPsec tunnel so the two don't fight.
 - Make the masquerade-exempt rule persistent across reboots (still living in `iptables -I` for now).
 - Reconsider firmware. OpenWrt 21.02 EOL is not a place to leave a permanent device.
-- Confirm with real Quebec streaming that the geo actually works the way it should.
 
-The thing is up. The Chromecast doesn't know it moved. That was the goal.
+
+The thing is up. Every device that joins that SSID is on a network I trust, regardless of where I happen to be standing. That was the goal. The side benefits write themselves.
