@@ -27,7 +27,7 @@ Fair question. That's the version with the lowest barrier to entry, and for a on
 - **The Chromecast doesn't follow.** Casting relies on the phone and the receiver being on the same network with mDNS reachable. The moment the phone tethers, the Chromecast is on the house wifi and the phone is on cellular. They can't see each other. You end up casting from the phone's browser to nothing.
 - **The phone has to be home, on, and tethering.** Family movie night becomes "where's dad's phone." Walk to the kitchen mid-episode, take a call, plug it in to the wrong charger, and the TV blanks.
 - **Everything on the phone goes through Quebec, not just the streaming.** Maps, work email, the doorbell app, the kid's tablet you tethered to the same hotspot. All of it routing through a Canadian exit. That's a privacy and latency tax on traffic that has no business being there.
-- **Cellular geolocation is not necessarily Canadian.** Just because the SIM is on a Canadian plan does not mean the carrier-NAT egress IP geolocates to Canada. T-Mobile, Rogers, Bell, they all aggregate to regional pops and the IP databases don't always agree with the billing address. You'll know within the first 30 seconds of a stream attempt.
+- **Cellular geolocation is not necessarily Canadian.** Just because the SIM is on a Canadian plan does not mean the carrier-NAT egress IP geolocates to Canada. Carriers aggregate to regional pops and the IP databases don't always agree with the billing address. You'll know within the first 30 seconds of a stream attempt.
 - **Data caps and throttling.** A 1080p stream is roughly 3 GB/hour. Two hours a night, four nights a week, and you've burned through whatever "unlimited" means on your plan. Hotspot data is usually the first thing throttled.
 - **Battery and thermal.** A phone running hotspot plus active VPN for a two-hour movie gets hot and dies. Now you're also tethering it to a charger, which means it lives next to the TV, which means it isn't with you.
 - **Re-pair every time.** No persistent SSID means every device that wants the Canadian exit has to be told about the hotspot, every time, with the rotating password.
@@ -164,14 +164,14 @@ conn wifi-local-passthrough
 
 `ipsec restart`, tunnel back in three seconds, Chromecast pulled DHCPACK on first retry. The fix is two lines. The diagnosis was an hour of tcpdump on every interface in the path wondering why I could see DISCOVERs but no OFFERs anywhere on the wire.
 
-## The hour I spent blaming eero for something it didn't do
+## The hour I spent blaming the upstream router for something it didn't do
 
 This one earns its place because the wrong conclusion was confidently delivered, and the right conclusion only came from getting bored and stopping.
 
 Symptom: after a config change, `abts2s` would not establish. Phase 1 stuck in CONNECTING, AUTH retransmits every four to eight seconds. I ran a sniffer on the FortiGate to see what was happening to those packets.
 
 ```
-# MUMNET-FGT01
+# FGT01
 diagnose sniffer packet any 'host <gl-wan-ip> and port 4500' 4 0 a
 # trimmed output
 ... 292 bytes  GL  -> FGT   IKE AUTH request
@@ -181,15 +181,15 @@ diagnose sniffer packet any 'host <gl-wan-ip> and port 4500' 4 0 a
 ...   1 byte   GL <-> FGT   NAT keepalive (both directions, fine)
 ```
 
-Request arrives, response leaves, response never comes back. Keepalives pass cleanly in both directions. That pattern looks exactly like an IPsec ALG mangling IKE payloads while letting tiny keepalives through, which is what I told myself was happening. eero must have a sneaky IKE inspector that strips or rewrites the AUTH response.
+Request arrives, response leaves, response never comes back. Keepalives pass cleanly in both directions. That pattern looks exactly like an IPsec ALG mangling IKE payloads while letting tiny keepalives through, which is what I told myself was happening. the upstream router must have a sneaky IKE inspector that strips or rewrites the AUTH response.
 
 It was wrong.
 
-What actually happened: the tunnel came up on its own about fifteen minutes after I stopped poking it. No config change. Most likely the eero needed time to settle a fresh UDP/4500 NAT mapping after the port forwards landed, and every `ipsec restart` was resetting the source port and making it relearn from scratch. IKE's retransmit cadence is faster than the eero takes to stabilize that mapping under load, and I kept resetting the clock.
+What actually happened: the tunnel came up on its own about fifteen minutes after I stopped poking it. No config change. Most likely the upstream router needed time to settle a fresh UDP/4500 NAT mapping after the port forwards landed, and every `ipsec restart` was resetting the source port and making it relearn from scratch. IKE's retransmit cadence is faster than the upstream NAT takes to stabilize that mapping under load, and I kept resetting the clock.
 
 The lessons that stuck:
 
-- Look it up before claiming it. I asserted "eero has an IPsec ALG" with zero documentation. The eero community forum has people running L2TP/IPsec through eero successfully with port forwards alone. No KB article, no firmware note, no thread mentions an IKE inspector. Pattern-matching off a sniffer trace is not proof.
+- Look it up before claiming it. I asserted "the upstream router has an IPsec ALG" with zero documentation. Plenty of people run L2TP/IPsec through the same class of device successfully with port forwards alone. No KB article, no firmware note, no thread mentions an IKE inspector on it. Pattern-matching off a sniffer trace is not proof.
 - Same symptom rarely means same cause. The trace was consistent with both ALG mangling and a NAT mapping that hadn't settled. The fact that the tunnel came up unchanged falsifies the ALG story cleanly. I should have been looking for the cheaper falsifiable test, not adding theory on top of theory.
 - Stop bouncing things while diagnosing transient NAT. Watching `tcpdump` for two minutes without poking would have shown it stabilize. Every restart resets the experiment.
 
@@ -204,9 +204,9 @@ It didn't work, and the reasons are useful even though the path was wrong:
 - FortiOS won't let a tunnel interface have a normal subnet mask. It must be `/32`, with a separate `remote-ip` field also `/32`. Subnet masks get rejected with an unhelpful error:
 
   ```
-  MUMNET-FGT01 # config system interface
-  MUMNET-FGT01 (interface) # edit abts2s
-  MUMNET-FGT01 (abts2s) # set ip 10.255.0.1 255.255.255.252
+  FGT01 # config system interface
+  FGT01 (interface) # edit abts2s
+  FGT01 (abts2s) # set ip 10.255.0.1 255.255.255.252
   A tunnel IP must have a mask of 255.255.255.255
 
   # correct shape
@@ -231,12 +231,12 @@ End-state verification on the router:
 
 ```
 root@GL-A1300:~# ipsec statusall
-abts2s[8]: ESTABLISHED, 192.168.4.54[abts2s-router]...166.62.149.96[10.0.0.172]
+abts2s[8]: ESTABLISHED, 192.168.4.10[abts2s-router]...203.0.113.42[10.0.0.10]
 abts2s{20}: INSTALLED, TUNNEL, ESP in UDP SPIs: c0d1007c_i b779cb0d_o
             2.3 MB in / 91 KB out, rekey in 11h
 
 root@GL-A1300:~# curl --interface 192.168.9.1 https://ifconfig.me
-166.62.149.96
+203.0.113.42
 ```
 
 ## What I'd do differently
@@ -245,7 +245,7 @@ root@GL-A1300:~# curl --interface 192.168.9.1 https://ifconfig.me
 - Verify with geo, not with `nslookup`. Saved me the second night.
 - Skip the FortiGate-as-DNS idea entirely. Public resolver, right source binding, done.
 - Add the DNS hijack NAT rule on day one, not after watching a Chromecast leak.
-- When IPsec gets weird, stop touching it for two minutes before adding theory. The fix for the eero saga was patience, not a new hypothesis.
+- When IPsec gets weird, stop touching it for two minutes before adding theory. The fix for the upstream-NAT saga was patience, not a new hypothesis.
 
 ## What's next
 
