@@ -1,16 +1,16 @@
 ---
-title: "A pocket router that gives me a trusted wifi anywhere I go"
-description: "A dedicated SSID that tunnels every joined device back through a network I actually control, so untrusted hotel and coffee-shop wifi stops being a thing I have to think about. And by total coincidence, the Chromecast at home thinks it lives somewhere it can watch what I pay for."
+title: "Pack your SSID"
+description: "A pocket travel router with an IPsec tunnel back to a network I actually control, broadcasting a dedicated SSID that follows me into every hotel, airport, and coffee shop. Untrusted wifi stops being a thing I have to think about. And by total coincidence, the Chromecast at home thinks it lives somewhere it can watch what I pay for."
 pubDate: "2026-06-04T03:30:00.000Z"
-cover: "/images/trusted-wifi-anywhere-travel-router/cover.png"
-coverAlt: "Abstract dark-themed illustration of a glowing hexagonal cyber shield with a wifi signal arc and faint network nodes, with a small geometric alligator tucked into the lower-right corner."
+cover: "/images/pack-your-ssid/cover.png"
+coverAlt: "Dark terminal-style cover graphic. A shield-with-checkmark icon and a wifi signal sit beside the tagline TRUSTED WI-FI ANYWHERE, with the headline 'Pack your SSID.' in bold orange."
 tags:
   - "networking"
   - "homelab"
   - "vpn"
   - "openwrt"
   - "ipsec"
-slug: "trusted-wifi-anywhere-travel-router"
+slug: "pack-your-ssid"
 draft: true
 ---
 
