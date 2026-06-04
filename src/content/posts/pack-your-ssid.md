@@ -11,7 +11,7 @@ tags:
   - "openwrt"
   - "ipsec"
 slug: "pack-your-ssid"
-draft: true
+draft: false
 ---
 
 ## Why this exists
