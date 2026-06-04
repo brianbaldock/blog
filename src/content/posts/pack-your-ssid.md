@@ -20,7 +20,7 @@ I do not trust most of the wifi I end up on. Hotel networks, conference networks
 
 The easy version is a VPN client on each device. Done in three taps, and I do that for my laptop and phone anyway. But "each device" is the problem. The work laptop has one, the personal laptop has another, the kid's tablet doesn't, the Chromecast can't, the e-reader has no idea what a VPN is. And every time I sit down somewhere new, I'm re-toggling them.
 
-So: a dedicated SSID called `CanadaExit-WiFi`. Anything that joins it gets tunneled back to a network I run, on hardware I trust, with DNS I trust, before it touches the internet. The phone joins it and behaves like it's at home. The Chromecast joins it and behaves like it's at home. The kid's tablet joins it once and never has to think about it again.
+So I started packing my SSID. A dedicated wifi network called `CanadaExit-WiFi` that I bring with me, broadcast off a pocket router, and tunnel back to a network I run, on hardware I trust, with DNS I trust, before it touches the internet. The phone joins it and behaves like it's at home. The Chromecast joins it and behaves like it's at home. The kid's tablet joins it once and never has to think about it again.
 
 There is also, theoretically, a side benefit: because the network it tunnels back to happens to live in Quebec, anything that geo-detects on IP or DNS thinks the device is in Quebec. I am not going to belabor this point. You can imagine what that's useful for.
 
@@ -37,7 +37,7 @@ Fair question. The phone hotspot is the path of least resistance and for a one-o
 - **Cellular egress is not the same as your home egress.** Even with a "Canadian SIM" or whatever clever provisioning trick, carrier-NAT aggregates to regional pops and the public IP can land anywhere. Anything that cares about the appearance of geography won't get a reliable answer from cellular.
 - **The Chromecast and TV stick can't join a phone hotspot meaningfully.** They want a persistent SSID on a stable network. Phone hotspot is the opposite of that on both counts.
 
-The dedicated SSID solves all of it by making the trust property of the *network*, not the device. Join the wifi, you're inside. Leave it, you're not. The phone stays a phone.
+Packing the SSID solves all of it by making the trust property of the *network*, not the device. Join the wifi, you're inside. Leave it, you're not. The phone stays a phone.
 
 ## The hardware
 
@@ -258,4 +258,4 @@ root@GL-A1300:~# curl --interface 192.168.9.1 https://ifconfig.me
 - Reconsider firmware. OpenWrt 21.02 EOL is not a place to leave a permanent device.
 
 
-The thing is up. Every device that joins that SSID is on a network I trust, regardless of where I happen to be standing. That was the goal. The side benefits write themselves.
+The thing is up. Every device that joins `CanadaExit-WiFi` is on a network I trust, regardless of where I happen to be standing. That was the goal: pack the SSID, and the trust goes with it. The side benefits write themselves.
