@@ -1,0 +1,257 @@
+---
+title: "How I got Quebec TV in Seattle without my Chromecast knowing it moved"
+description: "A dedicated wifi SSID that routes every joined device through a Quebec FortiGate over IPsec, so streaming services geo-detect as Canadian and the Chromecast never has to think about it."
+pubDate: "2026-06-04T03:30:00.000Z"
+tags:
+  - "networking"
+  - "homelab"
+  - "vpn"
+  - "openwrt"
+  - "ipsec"
+slug: "quebec-tv-in-seattle-travel-router"
+draft: true
+---
+
+## Why this exists
+
+I'm in Seattle. The streaming services I pay for in Quebec want me to be in Quebec. The Chromecast doesn't care about geopolitics, it just plays whatever the app tells it to, and the app gets told what to do by DNS and by the IP it appears to be coming from. Make both of those look Canadian and the picture shows up.
+
+Easy version: VPN on the phone. Done in three taps. But then the Chromecast is on its own, the cast handshake goes weird across networks, and every device in the house has to remember to flip a VPN on before family movie night. That's a chore tax I'm not paying.
+
+So: a dedicated SSID called `CanadaExit-WiFi`. Anything joined to it routes out a Quebec FortiGate by default, including DNS. Anything on my normal wifi behaves like it always did. The Chromecast lives on `CanadaExit-WiFi` forever and never knows it isn't in Quebec.
+
+## "Yeah, I know, why not just use your phone hotspot?"
+
+Fair question. That's the version with the lowest barrier to entry, and for a one-off "I'm in a hotel and want to watch one show" it's the right call. For an always-on living-room setup, the seams show fast:
+
+- **The Chromecast doesn't follow.** Casting relies on the phone and the receiver being on the same network with mDNS reachable. The moment the phone tethers, the Chromecast is on the house wifi and the phone is on cellular. They can't see each other. You end up casting from the phone's browser to nothing.
+- **The phone has to be home, on, and tethering.** Family movie night becomes "where's dad's phone." Walk to the kitchen mid-episode, take a call, plug it in to the wrong charger, and the TV blanks.
+- **Everything on the phone goes through Quebec, not just the streaming.** Maps, work email, the doorbell app, the kid's tablet you tethered to the same hotspot. All of it routing through a Canadian exit. That's a privacy and latency tax on traffic that has no business being there.
+- **Cellular geolocation is not necessarily Canadian.** Just because the SIM is on a Canadian plan does not mean the carrier-NAT egress IP geolocates to Canada. T-Mobile, Rogers, Bell, they all aggregate to regional pops and the IP databases don't always agree with the billing address. You'll know within the first 30 seconds of a stream attempt.
+- **Data caps and throttling.** A 1080p stream is roughly 3 GB/hour. Two hours a night, four nights a week, and you've burned through whatever "unlimited" means on your plan. Hotspot data is usually the first thing throttled.
+- **Battery and thermal.** A phone running hotspot plus active VPN for a two-hour movie gets hot and dies. Now you're also tethering it to a charger, which means it lives next to the TV, which means it isn't with you.
+- **Re-pair every time.** No persistent SSID means every device that wants the Canadian exit has to be told about the hotspot, every time, with the rotating password.
+- **It doesn't scale past one user.** Wife wants to watch something Canadian on her iPad while I'm watching something Canadian on the TV. Now we need two hotspots, or one of us is sharing my phone's battery.
+
+The dedicated SSID solves all of that by making the Canadian exit a property of the *network*, not the *device*. Join the wifi, you're in Quebec. Leave it, you're in Seattle. The phone stays a phone.
+
+## The hardware
+
+GL.iNet GL-A1300. Cheap, pocketable, runs OpenWrt, ships with strongSwan and Tailscale already in the image. I have no loyalty to it beyond "it was on the desk and it works."
+
+The catch: it shipped with OpenWrt 21.02.2, which is EOL upstream. No security updates. Fine for a single-purpose travel router behind another firewall; not fine for anything load-bearing. I'll revisit firmware before this becomes a permanent fixture.
+
+## The architecture (and why it changed)
+
+First pass was the obvious one: dial-up IPsec, FortiGate hands the router a virtual IP from a pool (`10.10.10.100`), the router sets that as a default route, everything goes through Quebec.
+
+That works for the router. It does not work cleanly for clients on a separate SSID, because now the default route on the router is fighting Tailscale, fighting the management plane, fighting anything I want to keep local. And the moment something on the router tries to talk to the internet, it has to remember to source-bind to `10.10.10.100` or it goes out the wrong door.
+
+Second pass, the one that actually works: site-to-site IPsec with a phase-2 selector of `192.168.9.0/24 <-> 0.0.0.0/0`. Translation: "any traffic whose source is the wifi subnet, going anywhere, encrypt it and ship it to Quebec." The router itself is *outside* the selector by design. Clients on `CanadaExit-WiFi` get a Quebec tunnel. The router does not. Tailscale lives in peace.
+
+This is the part most home-VPN guides skip. The selector is the policy. Routes don't matter the way they do with WireGuard or OpenVPN. You think about who you want to send through the tunnel, you express it as a source/destination pair, and the kernel handles the rest.
+
+## The failure that taught me the most: DNS leaks
+
+The tunnel came up. ICMP from a LAN address to `1.1.1.1` got there in 88ms instead of 12ms, which is exactly the cross-continent delta you'd expect for traffic actually going to Quebec and back. Counters on the SA were ticking. `ifconfig.me` from my phone showed the FortiGate's wan IP. Beautiful.
+
+Then I checked browserleaks.com/dns.
+
+Seattle.
+
+The web traffic was riding the tunnel. The DNS queries telling the web traffic *where to go* were not. The streaming services were doing geo-detection on the resolver IP, not the client IP, so they were still sending me the "this content isn't available in your region" page even though I was technically *in* their region as far as the TCP handshake was concerned.
+
+### Why this happens
+
+dnsmasq on OpenWrt forwards DNS queries upstream. By default it sources those queries from the router's own IP, which is on the WAN side. That address is not in the phase-2 selector. xfrm looks at it, decides this packet isn't supposed to be encrypted, and sends it out the WAN to the nearest 1.1.1.1 anycast node, which is in Seattle.
+
+The fix is one line of configuration. Here's the broken state I inherited from the GL.iNet web UI (it had cheerfully written source-binds pointing at a *dead* virtual IP from the dial-up phase, so dnsmasq was failing to bind at all):
+
+```
+# /etc/config/dhcp - broken
+list server '1.1.1.1#53@10.10.10.100'
+list server '1.0.0.1#53@10.10.10.100'
+```
+
+Replace with the LAN IP as the source anchor:
+
+```sh
+uci delete dhcp.@dnsmasq[0].server
+uci add_list dhcp.@dnsmasq[0].server='1.1.1.1@192.168.9.1'
+uci add_list dhcp.@dnsmasq[0].server='1.0.0.1@192.168.9.1'
+uci set dhcp.@dnsmasq[0].noresolv='1'
+uci commit dhcp
+/etc/init.d/dnsmasq restart
+```
+
+The `@192.168.9.1` tells dnsmasq to source-bind upstream queries to the wifi-subnet IP. That address is inside the selector. xfrm encrypts. The query goes to Quebec, exits via the FortiGate, and hits a Canadian 1.1.1.1 node. Streaming services now see a Canadian resolver and a Canadian client IP, and the content unlocks.
+
+`noresolv=1` is the second half of the fix. It prevents dnsmasq from silently falling back to `/tmp/resolv.conf.d/resolv.conf.auto`, which only contains the WAN gateway and would leak the moment your configured upstreams flap.
+
+### Why I almost missed it
+
+I had been running `nslookup google.com 127.0.0.1` on the router itself to check that DNS was working. It always came back fast and with a correct answer. Which is the trap: *fast and correct does not mean tunneled*. A 4ms response time from a router that should be reaching across the continent is the leak signal, not the success signal. The actual verification is the geo of the resolver, not the existence of an answer.
+
+Real test, in order:
+
+```sh
+# from a client joined to CanadaExit-WiFi
+curl https://ifconfig.me                    # must show FortiGate's wan IP
+curl https://browserleaks.com/dns           # must show a Canadian resolver
+```
+
+If both pass, streaming will geo-detect correctly. If only the first passes, the IP is right but DNS is leaking and Netflix-equivalent will still refuse.
+
+## Clients that ignore your resolver
+
+Even with dnsmasq forwarding through the tunnel correctly, the Chromecast still leaked. Smart TVs, casting devices, and a non-trivial chunk of IoT will ignore the DNS server you handed them via DHCP and hardcode 8.8.8.8. Plenty of reasons, none of them malicious, all of them inconvenient when you're trying to control where queries go.
+
+Fix is a NAT redirect at the router. Any traffic from the LAN destined to port 53 anywhere on the internet gets DNAT'd to the router's own resolver before it leaves:
+
+```sh
+uci add firewall redirect
+uci set firewall.@redirect[-1].name='Hijack-DNS-UDP'
+uci set firewall.@redirect[-1].src='lan'
+uci set firewall.@redirect[-1].proto='udp'
+uci set firewall.@redirect[-1].src_dport='53'
+uci set firewall.@redirect[-1].dest_port='53'
+uci set firewall.@redirect[-1].target='DNAT'
+
+# repeat with proto='tcp' for the TCP variant
+uci commit firewall
+/etc/init.d/firewall restart
+```
+
+The client thinks it's talking to Google. It's actually talking to my dnsmasq, which is forwarding upstream through the tunnel. The client never knows. This is the thing that turns "DNS works correctly if the device cooperates" into "DNS works correctly, full stop."
+
+## The thing that wasted the most time on the night this came together
+
+The tunnel was working. Then I came back from dinner and nothing was working. I spent an hour debugging dnsmasq, route tables, source bindings, and the FortiGate's listening services before checking the obvious:
+
+```
+# gl-a1300
+root@GL-A1300:~# ipsec statusall
+Security Associations (0 up, 0 connecting): none
+```
+
+The SA had dropped. No DPD restart, no log entry that grabbed my attention, just gone. `ipsec up abts2s` brought it back in two seconds. Everything I'd been debugging downstream of the tunnel was correct; the tunnel itself was the problem.
+
+Lesson, with feeling: when an IPsec setup that was working stops working, check the SA first. Not the routes, not the firewall, not the resolver. The SA.
+
+After that night I changed the conn from `auto=add` (load config, wait for someone to bring it up) to `auto=start` (load config, bring it up now, and keep bringing it back when it falls):
+
+```sh
+sed -i 's/auto=add/auto=start/' /etc/ipsec.conf
+ipsec restart
+```
+
+## When the IPsec selector eats your DHCP
+
+Worth its own section because the symptom is bizarre and the cause is unobvious. After splitting wifi clients onto their own subnet (`192.168.9.0/24`) and pointing the IPsec selector at it, wifi clients stopped getting DHCP leases. DISCOVER, DISCOVER, DISCOVER, no OFFER ever arrived. Wired clients were fine.
+
+What was happening: the xfrm OUT policy `src 192.168.9.0/24 dst 0.0.0.0/0` was greedy enough to capture dnsmasq's DHCPOFFER replies. Those replies have a source on the same subnet and a broadcast destination (`255.255.255.255`), which matched the selector. The kernel handed them to xfrm before they could reach the bridge, and they got encrypted into the tunnel and sent to the FortiGate. The Chromecast was waiting for an OFFER that was halfway to Quebec.
+
+Fix: a passthrough shunt that tells xfrm to leave intra-subnet traffic alone.
+
+```
+# /etc/ipsec.conf
+conn wifi-local-passthrough
+    leftsubnet=192.168.9.0/24
+    rightsubnet=192.168.9.0/24
+    type=passthrough
+    auto=route
+```
+
+`ipsec restart`, tunnel back in three seconds, Chromecast pulled DHCPACK on first retry. The fix is two lines. The diagnosis was an hour of tcpdump on every interface in the path wondering why I could see DISCOVERs but no OFFERs anywhere on the wire.
+
+## The hour I spent blaming eero for something it didn't do
+
+This one earns its place because the wrong conclusion was confidently delivered, and the right conclusion only came from getting bored and stopping.
+
+Symptom: after a config change, `abts2s` would not establish. Phase 1 stuck in CONNECTING, AUTH retransmits every four to eight seconds. I ran a sniffer on the FortiGate to see what was happening to those packets.
+
+```
+# MUMNET-FGT01
+diagnose sniffer packet any 'host <gl-wan-ip> and port 4500' 4 0 a
+# trimmed output
+... 292 bytes  GL  -> FGT   IKE AUTH request
+... 228 bytes  FGT -> GL    IKE AUTH response
+... 292 bytes  GL  -> FGT   IKE AUTH retransmit (4-8s later)
+... 228 bytes  FGT -> GL    IKE AUTH response (retransmit)
+...   1 byte   GL <-> FGT   NAT keepalive (both directions, fine)
+```
+
+Request arrives, response leaves, response never comes back. Keepalives pass cleanly in both directions. That pattern looks exactly like an IPsec ALG mangling IKE payloads while letting tiny keepalives through, which is what I told myself was happening. eero must have a sneaky IKE inspector that strips or rewrites the AUTH response.
+
+It was wrong.
+
+What actually happened: the tunnel came up on its own about fifteen minutes after I stopped poking it. No config change. Most likely the eero needed time to settle a fresh UDP/4500 NAT mapping after the port forwards landed, and every `ipsec restart` was resetting the source port and making it relearn from scratch. IKE's retransmit cadence is faster than the eero takes to stabilize that mapping under load, and I kept resetting the clock.
+
+The lessons that stuck:
+
+- Look it up before claiming it. I asserted "eero has an IPsec ALG" with zero documentation. The eero community forum has people running L2TP/IPsec through eero successfully with port forwards alone. No KB article, no firmware note, no thread mentions an IKE inspector. Pattern-matching off a sniffer trace is not proof.
+- Same symptom rarely means same cause. The trace was consistent with both ALG mangling and a NAT mapping that hadn't settled. The fact that the tunnel came up unchanged falsifies the ALG story cleanly. I should have been looking for the cheaper falsifiable test, not adding theory on top of theory.
+- Stop bouncing things while diagnosing transient NAT. Watching `tcpdump` for two minutes without poking would have shown it stabilize. Every restart resets the experiment.
+
+The port forwards stayed in place (UDP 500, UDP 4500, UDP 41641). They don't hurt and the WireGuard one was wanted anyway for Tailscale direct-path stability.
+
+## The detour into running DNS on the FortiGate tunnel interface
+
+I went down a long detour on running the DNS server *on the FortiGate's tunnel interface*. Idea was clean: instead of trusting a public resolver, point the GL.iNet at a recursor running directly on the Forti side. Self-contained, no third-party dependency, no edge case where Cloudflare's anycast routing decides to hand me a US node.
+
+It didn't work, and the reasons are useful even though the path was wrong:
+
+- FortiOS won't let a tunnel interface have a normal subnet mask. It must be `/32`, with a separate `remote-ip` field also `/32`. Subnet masks get rejected with an unhelpful error:
+
+  ```
+  MUMNET-FGT01 # config system interface
+  MUMNET-FGT01 (interface) # edit abts2s
+  MUMNET-FGT01 (abts2s) # set ip 10.255.0.1 255.255.255.252
+  A tunnel IP must have a mask of 255.255.255.255
+
+  # correct shape
+  set ip 10.255.0.1 255.255.255.255
+  set remote-ip 10.255.0.2 255.255.255.255
+  set allowaccess ping
+  ```
+
+- After giving the interface a `/32` and `allowaccess ping`, pings from the GL.iNet to the FortiGate's tunnel IP still failed silently. Sniffer on the FortiGate saw zero packets. Routes on the GL.iNet looked correct. xfrm state looked correct. I never proved exactly why, because:
+- The use case (DNS for streaming) doesn't need a private resolver. Public DNS sourced from the right interface gets the same geo result with less moving pieces. The detour was solving a problem I didn't have.
+
+The lesson: when the answer to "do I need this layer" is "it would be cleaner," check whether "it would be cleaner" is doing any actual work for you. Sometimes cleaner is just more.
+
+## What this looks like in practice
+
+- Phone joins `CanadaExit-WiFi`. Browser shows a Canadian IP. Streaming services show the Canadian library. Chromecast on the same SSID receives a cast and plays it.
+- Phone joins normal household wifi. Everything is Seattle, fast, normal.
+- Router itself stays on the household WAN for management, Tailscale, and updates. The IPsec tunnel only exists for traffic that originates from `192.168.9.0/24`.
+- The household network has no idea the Quebec exit exists. The Quebec exit has no idea about anything except `192.168.9.0/24`.
+
+End-state verification on the router:
+
+```
+root@GL-A1300:~# ipsec statusall
+abts2s[8]: ESTABLISHED, 192.168.4.54[abts2s-router]...166.62.149.96[10.0.0.172]
+abts2s{20}: INSTALLED, TUNNEL, ESP in UDP SPIs: c0d1007c_i b779cb0d_o
+            2.3 MB in / 91 KB out, rekey in 11h
+
+root@GL-A1300:~# curl --interface 192.168.9.1 https://ifconfig.me
+166.62.149.96
+```
+
+## What I'd do differently
+
+- Start with site-to-site. The dial-up profile was a detour that taught me how mode-config works and burned a few hours fighting masquerade rules I didn't need.
+- Verify with geo, not with `nslookup`. Saved me the second night.
+- Skip the FortiGate-as-DNS idea entirely. Public resolver, right source binding, done.
+- Add the DNS hijack NAT rule on day one, not after watching a Chromecast leak.
+- When IPsec gets weird, stop touching it for two minutes before adding theory. The fix for the eero saga was patience, not a new hypothesis.
+
+## What's next
+
+- Tailscale on the router as an exit node, routed *around* the IPsec tunnel so the two don't fight.
+- Make the masquerade-exempt rule persistent across reboots (still living in `iptables -I` for now).
+- Reconsider firmware. OpenWrt 21.02 EOL is not a place to leave a permanent device.
+- Confirm with real Quebec streaming that the geo actually works the way it should.
+
+The thing is up. The Chromecast doesn't know it moved. That was the goal.
