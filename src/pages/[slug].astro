@@ -1,0 +1,52 @@
+---
+// Legacy URL redirects.
+//
+// Hashnode served every post at the site root (e.g. /python-version-control).
+// The Astro site serves them under /posts/<slug>/. Without these stubs, every
+// old URL Google has indexed (and every external backlink) hits a hard 404 and
+// the accumulated ranking authority is lost. Each generated page is a tiny
+// meta-refresh redirect plus a canonical pointing at the new location, which
+// Google treats as a 301-equivalent and consolidates authority through.
+//
+// The map is built from the posts collection so it can never drift out of sync
+// with the actual content. It covers both the content id and any differing
+// `slug` frontmatter value.
+import { getCollection } from 'astro:content';
+import { SITE } from '../consts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const seen = new Set<string>();
+  const paths: { params: { slug: string }; props: { target: string } }[] = [];
+
+  for (const post of posts) {
+    const target = `/posts/${post.id}/`;
+    const oldSlugs = new Set<string>([post.id]);
+    if (post.data.slug) oldSlugs.add(post.data.slug);
+
+    for (const slug of oldSlugs) {
+      if (seen.has(slug)) continue;
+      seen.add(slug);
+      paths.push({ params: { slug }, props: { target } });
+    }
+  }
+
+  return paths;
+}
+
+const { target } = Astro.props;
+const canonical = new URL(target, SITE.url).toString();
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Redirecting…</title>
+    <link rel="canonical" href={canonical} />
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+  </head>
+  <body>
+    <p>This page has moved to <a href={target}>{target}</a>.</p>
+  </body>
+</html>

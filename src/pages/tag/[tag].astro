@@ -1,0 +1,39 @@
+---
+// Legacy Hashnode tag pages (/tag/<slug>) -> /posts/ archive.
+//
+// Hashnode generated a tag archive at /tag/<slug> for every tag in use, and
+// several are indexed by Google (e.g. /tag/finetuning, /tag/inference, /tag/lwc).
+// The Astro site has no tag archives yet, so rather than let these 404 we send
+// them to the full post archive, which is a real, relevant page. The slug list
+// is derived from the posts collection so it always matches the tags in use.
+//
+// If dedicated tag archive pages get built later, repoint `target` at
+// `/tags/<slug>/` and these redirects upgrade for free.
+import { getCollection } from 'astro:content';
+import { SITE } from '../../consts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const tags = new Set<string>();
+  for (const post of posts) {
+    for (const tag of post.data.tags ?? []) tags.add(tag);
+  }
+  return [...tags].map((tag) => ({ params: { tag } }));
+}
+
+const target = '/posts/';
+const canonical = new URL(target, SITE.url).toString();
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Redirecting…</title>
+    <link rel="canonical" href={canonical} />
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+  </head>
+  <body>
+    <p>This tag has moved. See <a href={target}>all posts</a>.</p>
+  </body>
+</html>

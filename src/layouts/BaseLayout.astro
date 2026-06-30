@@ -10,6 +10,13 @@ interface Props {
   ogImage?: string;
   canonicalUrl?: string;
   noindex?: boolean;
+  /** When set, the page is rendered as an article: og:type=article,
+   *  article:* meta tags, and BlogPosting structured data. */
+  article?: {
+    publishedTime: Date;
+    modifiedTime?: Date;
+    tags?: string[];
+  };
 }
 
 const {
@@ -18,11 +25,48 @@ const {
   ogImage = '/og-default.png',
   canonicalUrl,
   noindex = false,
+  article,
 } = Astro.props;
 
 const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} | ${SITE.tagline}`;
 const canonical = canonicalUrl ?? new URL(Astro.url.pathname, SITE.url).toString();
 const ogImageUrl = new URL(ogImage, SITE.url).toString();
+const ogType = article ? 'article' : 'website';
+
+// Structured data (schema.org). BlogPosting on posts, WebSite elsewhere.
+// Authority (canonical) and image URLs are reused from the meta block above so
+// there is a single source of truth for absolute URLs.
+const author = { '@type': 'Person', name: SITE.author, url: SITE.authorUrl };
+const jsonLd = article
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: title,
+      description,
+      image: ogImageUrl,
+      datePublished: article.publishedTime.toISOString(),
+      dateModified: (article.modifiedTime ?? article.publishedTime).toISOString(),
+      author,
+      publisher: {
+        '@type': 'Person',
+        name: SITE.author,
+        url: SITE.url,
+        logo: { '@type': 'ImageObject', url: new URL('/favicon-512.png', SITE.url).toString() },
+      },
+      mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+      url: canonical,
+      ...(article.tags && article.tags.length ? { keywords: article.tags.join(', ') } : {}),
+    }
+  : {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: SITE.title,
+      description: SITE.description,
+      url: SITE.url,
+      author,
+    };
+// Escape '<' so a stray "</script>" in any field can't break out of the tag.
+const jsonLdString = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
 ---
 <!doctype html>
 <html lang="en">
@@ -41,16 +85,28 @@ const ogImageUrl = new URL(ogImage, SITE.url).toString();
     <link rel="alternate" type="application/rss+xml" title={SITE.title} href="/rss.xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:site_name" content={SITE.title} />
+    {article && (
+      <>
+        <meta property="article:published_time" content={article.publishedTime.toISOString()} />
+        {article.modifiedTime && (
+          <meta property="article:modified_time" content={article.modifiedTime.toISOString()} />
+        )}
+        <meta property="article:author" content={SITE.author} />
+        {article.tags?.map((t) => <meta property="article:tag" content={t} />)}
+      </>
+    )}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
+
+    <script type="application/ld+json" is:inline set:html={jsonLdString} />
 
     <script is:inline>
       // Prevent dark-mode flash. Runs before paint.

@@ -34,6 +34,7 @@ const fmt = (d: Date) =>
   description={description}
   canonicalUrl={canonicalUrl}
   ogImage={typeof cover === 'string' ? cover : cover?.src}
+  article={{ publishedTime: pubDate, modifiedTime: updatedDate, tags }}
 >
   <article class="container">
     <header class="post-header">
