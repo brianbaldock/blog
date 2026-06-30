@@ -1,14 +1,80 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="About" description="About Brian Baldock. Security and AI infrastructure.">
-  <article class="container">
+<BaseLayout title="About" description="About Brian Baldock. Identity, security, and AI infrastructure, plus the line-cook habits that still run the workshop.">
+  <article class="container about">
     <h1>About</h1>
+
+    <img
+      class="portrait"
+      src="/images/about/brian-portrait.jpg"
+      width="170"
+      height="170"
+      alt="Brian Baldock, bearded and wearing glasses and a dark blazer, smiling with arms crossed."
+      loading="eager"
+      decoding="async"
+    />
+
     <p>
-      I'm Brian Baldock. I work on identity, security, and AI infrastructure,
-      and I publish what I learn here, usually after a deployment, sometimes
-      after a mistake.
+      I'm Brian Baldock. I work on identity, security, and AI infrastructure.
+      The unglamorous plumbing that decides whether everything else holds up.
     </p>
+    <p>
+      Before tech, I worked the line in restaurant kitchens. That isn't a
+      fun-fact footnote. The habits I built there (work clean, prep before
+      you're slammed, call out problems before they hit the pass) are the same
+      ones I lean on now when I'm hardening a tenant or chasing a tunnel that
+      won't come up at 1am. There's always something to clean.
+    </p>
+    <p>
+      I publish what I learn here, usually after a deployment, sometimes after
+      a mistake. The mistakes tend to make the better posts.
+    </p>
+    <p>
+      The alligator-with-a-taco mascot is a long story. The short version: it
+      stuck.
+    </p>
+
+    <h2>Certifications</h2>
+    <p class="muted">The credentials I actually use, grouped by what they're for.</p>
+
+    <h3>Security and identity</h3>
+    <ul class="certs">
+      <li>Microsoft Certified: Cybersecurity Architect Expert (SC-100)</li>
+      <li>Microsoft Certified: Security Operations Analyst Associate (SC-200)</li>
+      <li>Microsoft Certified: Identity and Access Administrator Associate (SC-300)</li>
+      <li>ISC2 Certified in Cybersecurity (CC)</li>
+    </ul>
+
+    <h3>Applied Skills (hands-on, scenario-based)</h3>
+    <ul class="certs">
+      <li>Defend against cyberthreats with Microsoft Defender XDR</li>
+      <li>Implement information protection and data loss prevention with Microsoft Purview</li>
+      <li>Prepare security and compliance for Microsoft 365 Copilot</li>
+      <li>Administer Active Directory Domain Services</li>
+    </ul>
+
+    <h3>Breadth and leadership</h3>
+    <ul class="certs">
+      <li>Microsoft 365 Certified: Administrator Expert</li>
+      <li>Microsoft Certified Trainer (MCT) 2026</li>
+      <li>VMware Certified Professional: Data Center Virtualization</li>
+      <li>Prosci Certified Change Practitioner</li>
+    </ul>
+
+    <p class="verify">
+      See the full badge wall on
+      <a href="https://www.credly.com/users/brian-baldock">Credly</a>.
+    </p>
+
+    <h2>Find me elsewhere</h2>
+    <ul class="elsewhere">
+      <li><a href="https://www.linkedin.com/in/brianbaldock/">LinkedIn</a></li>
+      <li><a href="https://github.com/brianbaldock">GitHub</a></li>
+      <li><a href="https://bsky.app/profile/brianbaldock.net">Bluesky</a></li>
+    </ul>
+
+    <h2>About this site</h2>
     <p>
       This blog runs on <a href="https://astro.build/">Astro</a>, lives in
       <a href="https://github.com/brianbaldock/blog">a public GitHub repo</a>,
@@ -16,14 +82,64 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <a href="https://creativecommons.org/licenses/by/4.0/">CC&nbsp;BY&nbsp;4.0</a>;
       code snippets are MIT.
     </p>
-    <p>
-      The alligator-with-a-taco mascot is a long story. The short version:
-      it stuck.
-    </p>
-    <h2>Find me elsewhere</h2>
-    <ul>
-      <li><a href="https://www.linkedin.com/in/brianbaldock/">LinkedIn</a></li>
-      <li><a href="https://github.com/brianbaldock">GitHub</a></li>
-    </ul>
   </article>
 </BaseLayout>
+
+<style>
+  .portrait {
+    float: right;
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0.25rem 0 1rem 1.75rem;
+    border: 3px solid var(--accent);
+    box-shadow: var(--shadow);
+  }
+  .about h3 {
+    margin-top: 1.4em;
+    color: var(--fg);
+  }
+  ul.certs {
+    list-style: none;
+    padding: 0;
+    margin: 0.5em 0 0;
+  }
+  ul.certs li {
+    padding: 0.4em 0 0.4em 1.5em;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+  ul.certs li:last-child { border-bottom: 0; }
+  ul.certs li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.95em;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .verify {
+    margin-top: 1em;
+    font-size: 0.95rem;
+    color: var(--fg-muted);
+  }
+  ul.elsewhere {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+  }
+  @media (max-width: 560px) {
+    .portrait {
+      float: none;
+      display: block;
+      margin: 0 auto 1.25rem;
+      width: 140px;
+      height: 140px;
+    }
+  }
+</style>
