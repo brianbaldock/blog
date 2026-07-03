@@ -1,6 +1,6 @@
 ---
 title: "Pack your SSID"
-description: "A pocket travel router with an IPsec tunnel back to a network I actually control, broadcasting a dedicated SSID that follows me into every hotel, airport, and coffee shop. Untrusted wifi stops being a thing I have to think about. And by total coincidence, the Chromecast at home thinks it lives somewhere it can watch what I pay for."
+description: "A pocket travel router with an IPsec tunnel back to a network I control, broadcasting a trusted SSID that follows me into every hotel and airport."
 pubDate: "2026-06-04T03:30:00.000Z"
 cover: "/images/pack-your-ssid/cover.png"
 coverAlt: "Dark terminal-style cover graphic. A shield-with-checkmark icon and a wifi signal sit beside the tagline TRUSTED WI-FI ANYWHERE, with the headline 'Pack your SSID.' in bold orange."

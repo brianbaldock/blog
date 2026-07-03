@@ -1,6 +1,6 @@
 ---
 title: "A $4k box, an open-source video model, and one stubborn easter egg"
-description: "Running Wan 2.2 image-to-video on a DGX Spark to make a hidden bedroom scene breathe. The Blackwell setup traps nobody documented yet, the model that kept summoning a person I never asked for, and the trick that puts live text on a monitor inside the video."
+description: "Running Wan 2.2 image-to-video on a DGX Spark to make a hidden scene breathe: the undocumented Blackwell setup traps and the trick behind it."
 pubDate: "2026-06-29T16:00:00.000Z"
 cover: "/images/running-wan-2-2-on-a-dgx-spark/cover.jpg"
 coverAlt: "A 1990s teenager's bedroom bathed in golden afternoon light, a CRT monitor glowing on the desk, with the title 'Make the room breathe.' overlaid at left"

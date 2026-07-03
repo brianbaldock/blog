@@ -1,0 +1,75 @@
+---
+import { getCollection } from 'astro:content';
+import PostCard from './PostCard.astro';
+
+interface Props {
+  /** The current post's id (filename slug) so it excludes itself. */
+  currentId: string;
+  /** The current post's tags, used to score topical relatedness. */
+  tags?: string[];
+  /** How many related posts to show. */
+  limit?: number;
+}
+
+const { currentId, tags = [], limit = 3 } = Astro.props;
+
+const currentTags = new Set(tags.map((t) => t.toLowerCase()));
+
+const all = (await getCollection('posts', ({ data }) => !data.draft))
+  .filter((p) => p.id !== currentId)
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+// Score by shared-tag count. Ties (and tag-less posts) fall back to recency,
+// which the pre-sort above already guarantees. This way EVERY post gets a full
+// set of related links, not just the ones with rich tags.
+const scored = all
+  .map((p) => {
+    const shared = p.data.tags.filter((t) => currentTags.has(t.toLowerCase())).length;
+    return { post: p, shared };
+  })
+  .sort((a, b) => {
+    if (b.shared !== a.shared) return b.shared - a.shared;
+    return b.post.data.pubDate.getTime() - a.post.data.pubDate.getTime();
+  });
+
+const related = scored.slice(0, limit).map((s) => s.post);
+---
+{related.length > 0 && (
+  <nav class="related container-wide" aria-label="Related posts">
+    <h2 class="related-heading"><span>Keep reading</span></h2>
+    <div class="related-grid">
+      {related.map((post) => (
+        <PostCard
+          href={`/posts/${post.id}/`}
+          title={post.data.title}
+          description={post.data.description}
+          pubDate={post.data.pubDate}
+          cover={post.data.cover}
+          coverAlt={post.data.coverAlt}
+          tags={post.data.tags}
+        />
+      ))}
+    </div>
+  </nav>
+)}
+
+<style>
+  .related {
+    margin: 4rem auto 2rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .related-heading {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 0 0 1.5rem; font-size: 1rem;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted);
+  }
+  .related-heading::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+</style>

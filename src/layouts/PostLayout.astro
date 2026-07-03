@@ -1,8 +1,11 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import RelatedPosts from '../components/RelatedPosts.astro';
 import { Image } from 'astro:assets';
 
 interface Props {
+  /** Post id (filename slug) so related-posts can exclude the current post. */
+  id: string;
   title: string;
   description?: string;
   pubDate: Date;
@@ -15,6 +18,7 @@ interface Props {
 }
 
 const {
+  id,
   title,
   description,
   pubDate,
@@ -63,6 +67,7 @@ const fmt = (d: Date) =>
       <slot />
     </div>
   </article>
+  <RelatedPosts currentId={id} tags={tags} />
 </BaseLayout>
 
 <style>

@@ -65,7 +65,7 @@ At their core, both VPNs and HTTPS/TLS tunnel encrypted traffic to a specific de
 | --- | --- |
 | Secures specific traffic (e.g., Defender services communicating with Microsoft's Defender cloud endpoints, not your entire network session). | Route all traffic through a secure tunnel. |
 
-![](/images/defender-for-endpoint-and-the-internet/a4b249d1-d08b-48ec-bc7a-ba83bef372c6.png)
+![Illustration contrasting a broad VPN tunnel with application-specific HTTPS/TLS encryption, showing where each encrypts traffic in the network stack](/images/defender-for-endpoint-and-the-internet/a4b249d1-d08b-48ec-bc7a-ba83bef372c6.png)
 
 ### **Pinning and Allowlisting**
 

@@ -132,7 +132,7 @@ sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
 
 The **nvidia-smi** output should display your GPU details. Running the same command inside a Docker container should produce identical output. If anything looks off, retrace the setup steps to catch any missed configurations.
 
-![](/images/deploying-local-ai-inference-with-vllm-and-chatui-in-docker/c99f89e7-157f-4fbe-bb42-d4bf0fb68585.png)
+![nvidia-smi output showing GPU details from inside the Docker container](/images/deploying-local-ai-inference-with-vllm-and-chatui-in-docker/c99f89e7-157f-4fbe-bb42-d4bf0fb68585.png)
 
 ## **Setting Up the Working Directory**
 
@@ -1477,7 +1477,7 @@ You should now be able to access ChatUI and start chatting with your model!
 
 Example: I think Phi-3 is happy to be featured in this blog post.
 
-![](/images/deploying-local-ai-inference-with-vllm-and-chatui-in-docker/3c3639a5-81fe-452b-a358-2cbca4c6f72b.png)
+![ChatUI web interface with the locally served Phi-3 model responding in a chat](/images/deploying-local-ai-inference-with-vllm-and-chatui-in-docker/3c3639a5-81fe-452b-a358-2cbca4c6f72b.png)
 
 ---
 
