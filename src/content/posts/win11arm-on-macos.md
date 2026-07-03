@@ -54,7 +54,7 @@ This conversion might take a while, so grab a coffee and be patient.
 
 **Step 7:** Fire up VMware Fusion and set up a new VM:
 
-![](/images/win11arm-on-macos/977d6781-6a84-4141-be51-c3363fe05848.png)
+![VMware Fusion new-VM wizard with Create a custom virtual machine selected for a Windows 11 Arm guest](/images/win11arm-on-macos/977d6781-6a84-4141-be51-c3363fe05848.png)
 
 * Choose “Create a custom virtual machine”.
     
@@ -71,7 +71,7 @@ This conversion might take a while, so grab a coffee and be patient.
 
 **Step 8:** If your VM is running, shut it down. Then, in Finder, head to your Virtual Machines folder, right-click the .vmbundle file, and select “Show Package Contents”.
 
-![](/images/win11arm-on-macos/f5e79734-6a7e-4b72-b6ce-9637a219456e.png)
+![Finder Show Package Contents view of the VM bundle, locating the .vmx configuration file to edit](/images/win11arm-on-macos/f5e79734-6a7e-4b72-b6ce-9637a219456e.png)
 
 Find the .vmx file, right-click, and open with TextEdit. Near the document's end, locate the line:
 

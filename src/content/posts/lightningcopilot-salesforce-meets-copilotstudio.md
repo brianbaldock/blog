@@ -1,6 +1,6 @@
 ---
 title: "LightningCopilot - Integrating Microsoft Copilot Studio into Salesforce Lightning (LWC) with Entra ID SSO"
-description: "Learn how to integrate Microsoft Copilot Studio into Salesforce Lightning (LWC) with Entra ID SSO for a seamless experience"
+description: "Embedding a Microsoft Copilot Studio agent inside Salesforce Lightning (LWC) with full Entra ID SSO, MSAL auth, and a token flow that survives Locker."
 pubDate: "2025-10-29T10:00:47.837Z"
 cover: "/images/lightningcopilot-salesforce-meets-copilotstudio/9b1550d5-e295-47a3-8bc0-32a8696f2d5e.png"
 coverAlt: "Cover image for LightningCopilot - Integrating Microsoft Copilot Studio into Salesforce Lightning (LWC) with Entra ID SSO"
@@ -83,7 +83,7 @@ Chances are you have a Copilot Studio Agent already. If not, create one.
 
 Assuming you already have a published agent, open it in [https://copilotstudio.microsoft.com](https://copilotstudio.microsoft.com). Depending on your Power Platform environment type, some authentication or configuration options might not appear. I’d recommend checking that these settings are available; if they’re missing, you’ll likely need your IT team to spin up a new Power Platform environment for Copilot Studio, ideally using a **Dev** or **Sandbox** environment type. See the screenshot below:
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/7f0508aa-4057-42f3-959c-dbf4ab13af50.png)
+![Copilot Studio agent authentication settings pane in the web portal](/images/lightningcopilot-salesforce-meets-copilotstudio/7f0508aa-4057-42f3-959c-dbf4ab13af50.png)
 
 1. Once able, select “**Authenticate manually**” and click “**Save**”.
     
@@ -102,7 +102,7 @@ Assuming you already have a published agent, open it in [https://copilotstudio.m
 7. ***Note***\*:\* ***The “Scopes” will likely only contain “profile” and “openapi”, this is okay for now. We’ll come back to this later.***
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/6eca53f8-0c57-44ee-8081-359f8db829f2.png)
+![Copilot Studio manual authentication configuration showing redirect URL, federated credential issuer and value, client ID, and scopes](/images/lightningcopilot-salesforce-meets-copilotstudio/6eca53f8-0c57-44ee-8081-359f8db829f2.png)
 
 ## Prepare the Entra ID App Registration
 
@@ -111,14 +111,14 @@ Assuming you already have a published agent, open it in [https://copilotstudio.m
 * Click “App Registrations”.
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/8b98c35e-caa5-4bdb-b9f6-9aae492f57ed.png)
+![Microsoft Entra admin center with App registrations selected](/images/lightningcopilot-salesforce-meets-copilotstudio/8b98c35e-caa5-4bdb-b9f6-9aae492f57ed.png)
 
 * Select your agent from the list. You should see your agent name with the (Microsoft Copilot Studio) suffix.
     
 * Note down your Application (Client) ID, Directory (Tenant) ID.
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/2d34bfb6-2b3b-4eb4-b117-1f62eac3be6b.png)
+![Entra ID app registration overview showing the agent's Application (client) ID and Directory (tenant) ID](/images/lightningcopilot-salesforce-meets-copilotstudio/2d34bfb6-2b3b-4eb4-b117-1f62eac3be6b.png)
 
 ### 1) Authentication settings
 
@@ -145,7 +145,7 @@ Assuming you already have a published agent, open it in [https://copilotstudio.m
 * Should look something like this when you’re done:
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/55e77876-f464-46d6-bac8-fe38c2900666.png)
+![Completed Entra ID Authentication blade with Web and single-page-application redirect URIs and ID tokens enabled](/images/lightningcopilot-salesforce-meets-copilotstudio/55e77876-f464-46d6-bac8-fe38c2900666.png)
 
 ### 2) Certificates & Secrets
 
@@ -154,7 +154,7 @@ Assuming you already have a published agent, open it in [https://copilotstudio.m
 2. Click “**Add credential”.**
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/87ff8cbd-ae45-44d9-a98e-007d9f60f0eb.png)
+![Entra ID Federated credentials list with the Add credential button](/images/lightningcopilot-salesforce-meets-copilotstudio/87ff8cbd-ae45-44d9-a98e-007d9f60f0eb.png)
 
 1. From the “**Federated credential scenario**” dropdown select “**Other issuer**”.
     
@@ -171,7 +171,7 @@ Assuming you already have a published agent, open it in [https://copilotstudio.m
 6. Click “**Add**” to save the settings
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/577df253-7e7d-46da-a44b-612a2e16a4f1.png)
+![Entra ID Add a federated credential form configured for the Other issuer scenario with issuer, subject value, and name filled in](/images/lightningcopilot-salesforce-meets-copilotstudio/577df253-7e7d-46da-a44b-612a2e16a4f1.png)
 
 ### 3) API Permissions
 
@@ -198,14 +198,14 @@ With the SPN enabled we can now go back to Entra ID and add additional API Permi
 1. Under API Permissions select “**Add Permission**”.
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/8f30f820-6ee3-453b-8702-96942f43080b.png)
+![Entra ID API permissions blade with Add a permission selected](/images/lightningcopilot-salesforce-meets-copilotstudio/8f30f820-6ee3-453b-8702-96942f43080b.png)
 
 1. Select "**APIs my organization uses**”.
     
 2. Search for “**Power Platform API**” and select it.
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/1b43b913-a1b8-471e-9f5b-a8044f8d2e44.png)
+![Entra ID permission picker under APIs my organization uses with Power Platform API selected](/images/lightningcopilot-salesforce-meets-copilotstudio/1b43b913-a1b8-471e-9f5b-a8044f8d2e44.png)
 
 <div data-node-type="callout">
 <div data-node-type="callout-emoji">⚠</div>
@@ -219,12 +219,12 @@ With the SPN enabled we can now go back to Entra ID and add additional API Permi
 3. Click “**Add permissions**”.
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/cd3995ea-72fd-4151-8f6c-f8a6bbe6ab13.png)
+![Entra ID API permissions showing the CopilotStudio.Copilots.Invoke delegated permission added](/images/lightningcopilot-salesforce-meets-copilotstudio/cd3995ea-72fd-4151-8f6c-f8a6bbe6ab13.png)
 
 1. Click “**Grant admin consent for &lt;Your Org Name&gt;**”.
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/da19c989-da34-4e0d-bab1-2b90d44a0992.png)
+![Entra ID API permissions after granting admin consent for the organization](/images/lightningcopilot-salesforce-meets-copilotstudio/da19c989-da34-4e0d-bab1-2b90d44a0992.png)
 
 ### 4) Expose an API
 
@@ -233,12 +233,12 @@ With the SPN enabled we can now go back to Entra ID and add additional API Permi
 2. Click “**Add**" next to “**Application ID URI**”
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/1dc18b72-190a-410a-9c59-a17e39a6f739.png)
+![Entra ID Expose an API blade adding the Application ID URI](/images/lightningcopilot-salesforce-meets-copilotstudio/1dc18b72-190a-410a-9c59-a17e39a6f739.png)
 
 1. Click “**Save**” (the generated URI is sufficient for our purposes)
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/2de72b8a-baac-40be-ae46-02605e2553b3.png)
+![Entra ID Expose an API blade with the generated Application ID URI saved](/images/lightningcopilot-salesforce-meets-copilotstudio/2de72b8a-baac-40be-ae46-02605e2553b3.png)
 
 1. Next, click “**Add a Scope**”.
     
@@ -259,11 +259,11 @@ With the SPN enabled we can now go back to Entra ID and add additional API Permi
 9. Click “Add scope”.
     
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/ce539d59-6465-4f71-823d-37c1de35c130.png)
+![Entra ID Add a scope form defining the Chat.Invoke scope with admin and user consent details](/images/lightningcopilot-salesforce-meets-copilotstudio/ce539d59-6465-4f71-823d-37c1de35c130.png)
 
 When you’re done it should look something like this:
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/40831e61-f119-42f6-9be8-eb5a8d74c4d5.png)
+![Entra ID Expose an API blade showing the completed Chat.Invoke scope](/images/lightningcopilot-salesforce-meets-copilotstudio/40831e61-f119-42f6-9be8-eb5a8d74c4d5.png)
 
 **Update the Scopes in your Copilot Agent**
 
@@ -271,7 +271,7 @@ When you’re done it should look something like this:
     
 * Go back to Copilot Studio and select you Agent, click Settings, Security, Authentication and paste the full **api://&lt;GUID&gt;/Chat.Invoke** at the end of the “Scopes” text field, leave a space after the existing scopes there.
     
-* ![](/images/lightningcopilot-salesforce-meets-copilotstudio/9d598a92-1db9-4f33-bade-a8581858713d.png)
+* ![Copilot Studio authentication settings with the full api:// Chat.Invoke scope appended to the Scopes field](/images/lightningcopilot-salesforce-meets-copilotstudio/9d598a92-1db9-4f33-bade-a8581858713d.png)
     
 
 ## Building the LWC
@@ -290,7 +290,7 @@ I’ve added a build-static-resources.mjs which pulls the latest components requ
 
 You should see a result like this.
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/8c91048c-7342-4411-a9a7-36aaa7ba68cc.png)
+![Terminal output after npm install and the static-resources build script completing successfully](/images/lightningcopilot-salesforce-meets-copilotstudio/8c91048c-7342-4411-a9a7-36aaa7ba68cc.png)
 
 ### Rebranding
 
@@ -351,7 +351,7 @@ Let’s create the static resources:
 
 When you’re done, it should look something like this:
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/96f08684-d83b-44fb-854b-d3f943485396.png)
+![Salesforce Static Resources list showing msalBrowser, adaptiveCard, and copilotStudioClient uploaded](/images/lightningcopilot-salesforce-meets-copilotstudio/96f08684-d83b-44fb-854b-d3f943485396.png)
 
 ### Creating the TrustedURLs
 
@@ -368,7 +368,7 @@ Trusted URLs in Salesforce define which external domains your org is allowed to 
     * **Trusted URL Recipe:**
         
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/13069aa2-f1f8-46cd-95cc-ba825566294d.png)
+![Salesforce New Trusted URL form showing the recipe used for each Microsoft endpoint](/images/lightningcopilot-salesforce-meets-copilotstudio/13069aa2-f1f8-46cd-95cc-ba825566294d.png)
 
 Here is the list of URLs:
 
@@ -390,7 +390,7 @@ Here is the list of URLs:
 
 When you’re done, it should looks something like this:
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/613cce7d-d43e-4f3e-89e3-8aa5ffca440e.png)
+![Salesforce CSP Trusted URLs list with all the required Microsoft and Power Platform endpoints added](/images/lightningcopilot-salesforce-meets-copilotstudio/613cce7d-d43e-4f3e-89e3-8aa5ffca440e.png)
 
 ### Creating the Custom Labels
 
@@ -461,7 +461,7 @@ Great list right? Where do we find all the things? Let’s start with the easy o
 
 When you’re finished, it should look something like this:
 
-![](/images/lightningcopilot-salesforce-meets-copilotstudio/1c3c9cfc-4e31-4d81-b085-f45da576c321.png)
+![Salesforce Custom Labels list populated with the MSAL and Copilot configuration values](/images/lightningcopilot-salesforce-meets-copilotstudio/1c3c9cfc-4e31-4d81-b085-f45da576c321.png)
 
 ## Troubleshooting
 

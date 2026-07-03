@@ -130,7 +130,7 @@ Executives want to know if the business is safer this month than last.
 
 ## A simple Microsoft Secure Score 30-60-90 starter plan
 
-![](/images/securescore/58b1c956-cacf-4b62-95cf-bb85bd9c5f4e.png)
+![Illustration of a 30/60/90-day Microsoft Secure Score starter plan: set the system, run the loop, then scale it, with expected outcomes by day 90](/images/securescore/58b1c956-cacf-4b62-95cf-bb85bd9c5f4e.png)
 
 ## Days 1-30 “Set the system”
 

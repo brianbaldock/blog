@@ -128,7 +128,7 @@ Here’s a simple truth: you can’t bolt on identity after you’ve built an ag
 
 Let’s try and make this real. Using the previous recipe, let’s outline what it would look like for a user to trigger an action via an agent, which then queries SQL Server via an MCP server. The MCP server could just be used as a wrapper for another API in this case.
 
-![](/images/recipe-designing-identity-for-agentic-ai/dff0c1c7-3f46-4baf-8d79-2fdebf4aa268.png)
+![Diagram of an end-to-end identity flow: a user authenticated via Entra ID calls an agent, which calls an MCP server with a bearer token, split into On-Behalf-Of and service-credential paths reaching SQL Server with audit logging](/images/recipe-designing-identity-for-agentic-ai/dff0c1c7-3f46-4baf-8d79-2fdebf4aa268.png)
 
 Here’s a matrix view of the different flows:
 

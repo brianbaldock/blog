@@ -1,6 +1,6 @@
 ---
 title: "My Simple Setup for Sanity in Python Development on Windows"
-description: "Learn how to manage Python versions seamlessly on Windows using PyEnv and PowerShell for a hassle-free development environment"
+description: "Managing multiple Python versions on Windows with pyenv-win and PowerShell, and the small setup that keeps my dev environment from fighting me."
 pubDate: "2025-12-02T06:23:30.468Z"
 cover: "/images/python-version-control/f2704d0f-711f-4f69-a4f3-a70adbf4832b.png"
 coverAlt: "Cover image for My Simple Setup for Sanity in Python Development on Windows"

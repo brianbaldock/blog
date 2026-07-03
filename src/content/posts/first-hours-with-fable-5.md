@@ -1,6 +1,6 @@
 ---
 title: "First hours with Fable 5"
-description: "Claude Fable 5 is genuinely the most capable model Anthropic has shipped. It also blocks legit security work, gates the uncapped version behind an invite list, and quietly drops the zero-retention floor a lot of business customers chose Claude for."
+description: "Claude Fable 5 is the most capable model Anthropic has shipped. It also blocks legit security work and drops the zero-retention floor businesses chose it for."
 pubDate: "2026-06-10T16:00:00.000Z"
 cover: "/images/first-hours-with-fable-5/cover.png"
 coverAlt: "Cover image for First hours with Fable 5"
