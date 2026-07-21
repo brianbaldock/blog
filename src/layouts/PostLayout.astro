@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import RelatedPosts from '../components/RelatedPosts.astro';
+import Comments from '../components/Comments.astro';
 import { Image } from 'astro:assets';
 
 interface Props {
@@ -67,6 +68,7 @@ const fmt = (d: Date) =>
       <slot />
     </div>
   </article>
+  <Comments />
   <RelatedPosts currentId={id} tags={tags} />
 </BaseLayout>
 

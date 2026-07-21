@@ -1,0 +1,92 @@
+---
+// Comments powered by giscus (https://giscus.app).
+// Comments are stored as GitHub Discussions in brianbaldock/blog under the
+// "Announcements" category. Commenting requires a GitHub account, which is our
+// spam/bot floor: we don't run any moderation infra, GitHub owns that. Moderate
+// by managing Discussions in the repo (delete a discussion -> comments gone).
+//
+// Privacy posture matches the rest of the site: no cookies set by us, the
+// giscus iframe only loads when this component is on the page (posts only).
+//
+// The config values below come from the repo + discussion category and are
+// safe to commit (they are public identifiers, not secrets):
+//   repo id     -> R_kgDORAJKZQ
+//   category    -> Announcements
+//   category id -> DIC_kwDORAJKZc4DBqKy
+//
+// Theme: giscus renders in an iframe, so it can't read our CSS. We map the
+// site's data-theme (light/dark, absent = system) to a giscus theme on load,
+// and postMessage the iframe when the toggle flips so comments follow the page.
+---
+<section class="comments" aria-label="Comments">
+  <h2>Comments</h2>
+  <p class="comments-note">
+    Comments are powered by GitHub Discussions. Sign in with a GitHub account to
+    join the conversation or react.
+  </p>
+  <div id="giscus-container"></div>
+</section>
+
+<script is:inline>
+  (function () {
+    const container = document.getElementById('giscus-container');
+    if (!container) return;
+
+    // Map site theme -> giscus theme. System (no data-theme) follows OS.
+    function giscusTheme() {
+      const t = document.documentElement.getAttribute('data-theme');
+      if (t === 'light') return 'light';
+      if (t === 'dark') return 'dark';
+      return 'preferred_color_scheme'; // system
+    }
+
+    // Inject the giscus loader with our repo config.
+    const s = document.createElement('script');
+    s.src = 'https://giscus.app/client.js';
+    s.setAttribute('data-repo', 'brianbaldock/blog');
+    s.setAttribute('data-repo-id', 'R_kgDORAJKZQ');
+    s.setAttribute('data-category', 'Announcements');
+    s.setAttribute('data-category-id', 'DIC_kwDORAJKZc4DBqKy');
+    s.setAttribute('data-mapping', 'pathname'); // one discussion per post URL
+    s.setAttribute('data-strict', '1');         // exact pathname match
+    s.setAttribute('data-reactions-enabled', '1'); // the "likes"/upvotes
+    s.setAttribute('data-emit-metadata', '0');
+    s.setAttribute('data-input-position', 'top');
+    s.setAttribute('data-theme', giscusTheme());
+    s.setAttribute('data-lang', 'en');
+    s.setAttribute('data-loading', 'lazy'); // only load when scrolled near
+    s.crossOrigin = 'anonymous';
+    s.async = true;
+    container.appendChild(s);
+
+    // Keep comments theme in sync with the page toggle. The toggle mutates
+    // data-theme on <html>, so observe it and postMessage the giscus iframe.
+    function sendTheme() {
+      const iframe = document.querySelector('iframe.giscus-frame');
+      if (!iframe) return;
+      iframe.contentWindow.postMessage(
+        { giscus: { setConfig: { theme: giscusTheme() } } },
+        'https://giscus.app'
+      );
+    }
+    const obs = new MutationObserver(sendTheme);
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+  })();
+</script>
+
+<style>
+  .comments {
+    max-width: var(--content-width, 720px);
+    margin: 3rem auto 0;
+    padding: 0 1rem;
+  }
+  .comments h2 { margin-bottom: 0.4rem; }
+  .comments-note {
+    color: var(--fg-muted, #888);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+</style>

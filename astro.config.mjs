@@ -30,6 +30,12 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    // Allow the tailnet MagicDNS host to reach the dev server for local
+    // preview over Tailscale. Dev-only; the production build is static and
+    // never runs this server.
+    server: {
+      allowedHosts: ['abthermesx.tail34acee.ts.net'],
+    },
   },
   image: {
     // Sharp is the default; explicit for clarity.
