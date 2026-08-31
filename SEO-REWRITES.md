@@ -1,7 +1,18 @@
 # Title + description rewrites, blog.brianbaldock.net
 
-Drafted 2026-08-31 from Bing Webmaster query data (183 days). NOT yet applied —
-these are Brian's voice, he reviews before they ship.
+Drafted 2026-08-31 from Bing Webmaster query data (183 days). **APPLIED
+2026-08-31.** Baseline for measuring the effect, recorded below.
+
+Bing baseline at time of change: 27,304 impressions, 671 clicks, 6.61% CTR
+once ~2,038 garbled `edge://` browser-internal queries are excluded. Give it
+4-6 weeks before reading anything into the numbers; re-measure with
+`~/.hermes/scripts/bing_blog_pages.py`.
+
+One draft changed during application. `proxies-and-defender-for-endpoint` was
+drafted as "Configuration Guide", but reading the body showed it is a 500-word
+index of three articles published on Microsoft's official blogs, with no
+registry keys, no netsh, no URL list. Shipped as "Article Roundup" instead.
+A title that promises steps the page lacks buys a click and loses the position.
 
 ## Method
 

@@ -1,6 +1,6 @@
 ---
-title: "Deploying Local AI Inference with vLLM and ChatUI in Docker"
-description: "Learn how to deploy a self-hosted AI chatbot using vLLM and ChatUI in Docker with an NVIDIA GPU for local AI inference"
+title: "Run vLLM in Docker: Self-Hosted LLM with a Chat UI"
+description: "Deploy a self-hosted LLM with vLLM and ChatUI in Docker Compose, including NVIDIA GPU passthrough, so inference runs entirely on your own hardware."
 pubDate: "2025-02-01T03:57:50.920Z"
 cover: "/images/deploying-local-ai-inference-with-vllm-and-chatui-in-docker/c3421c66-a6cd-4f07-a410-3877c2a21da0.png"
 coverAlt: "Cover image for Deploying Local AI Inference with vLLM and ChatUI in Docker"

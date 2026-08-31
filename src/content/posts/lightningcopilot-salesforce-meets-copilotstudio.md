@@ -1,6 +1,6 @@
 ---
-title: "LightningCopilot - Integrating Microsoft Copilot Studio into Salesforce Lightning (LWC) with Entra ID SSO"
-description: "Embedding a Microsoft Copilot Studio agent inside Salesforce Lightning (LWC) with full Entra ID SSO, MSAL auth, and a token flow that survives Locker."
+title: "Embed Copilot Studio in Salesforce with Entra ID SSO"
+description: "Embedding a Microsoft Copilot Studio agent in Salesforce Lightning (LWC) with Entra ID single sign-on, MSAL auth, and a token flow that survives Locker."
 pubDate: "2025-10-29T10:00:47.837Z"
 cover: "/images/lightningcopilot-salesforce-meets-copilotstudio/9b1550d5-e295-47a3-8bc0-32a8696f2d5e.png"
 coverAlt: "Cover image for LightningCopilot - Integrating Microsoft Copilot Studio into Salesforce Lightning (LWC) with Entra ID SSO"

@@ -1,6 +1,6 @@
 ---
-title: "Mastering Edge Profiles for Microsoft 365 Management"
-description: "Explore how to use Edge profiles for efficient Microsoft 365 tenant management in this easy-to-follow guide."
+title: "Manage Multiple Microsoft 365 Tenants with Edge Profiles"
+description: "Use Microsoft Edge profiles to keep multiple Microsoft 365 tenant accounts signed in side by side, without constant sign-outs or InPrivate windows."
 pubDate: "2023-12-06T22:04:51.546Z"
 cover: "/images/edge-profile-pro-tips/740eeb0e-1fe3-43ee-9ff6-cb7b682e2e62.png"
 coverAlt: "Cover image for Mastering Edge Profiles for Microsoft 365 Management"

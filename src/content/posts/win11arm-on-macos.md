@@ -1,6 +1,6 @@
 ---
-title: "Next-Level Virtualization: Windows 11 ARM64 Meets Apple Silicon"
-description: "Optimize Win11 ARM64 on Apple Silicon using VMware Fusion: Guide for setup, VHDX to VMDK conversion, Homebrew, QEMU, and VMware Tools installation"
+title: "Windows 11 ARM64 on Apple Silicon with VMware Fusion"
+description: "Run Windows 11 ARM64 on an Apple Silicon Mac with VMware Fusion: converting the VHDX to VMDK with QEMU via Homebrew, then installing VMware Tools."
 pubDate: "2024-02-25T14:53:12.818Z"
 cover: "/images/win11arm-on-macos/498f8d94-798e-4782-a51c-dc589f4ef134.webp"
 coverAlt: "Cover image for Next-Level Virtualization: Windows 11 ARM64 Meets Apple Silicon"

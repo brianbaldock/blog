@@ -1,75 +1,97 @@
 #!/usr/bin/env python3
-"""Check the proposed SEO titles/descriptions against length limits.
+"""Check SHIPPED post titles/descriptions against SERP length limits.
 
-Titles get ` | Brian Baldock` appended by BaseLayout, so the frontmatter title
-budget is what search engines truncate against. Verifying lengths rather than
-eyeballing them, because "looks about right" is how you ship a truncated title.
+Reads the actual content files under src/content/posts/, not a hardcoded list.
+The earlier version of this script carried its own copy of the proposed strings,
+which meant it happily reported "5/5 within limits" while describing text that
+was no longer what the site shipped -- a verifier measuring its own homework.
+Read the artifact, not the plan.
+
+Titles get ` | Brian Baldock` appended by BaseLayout, so the rendered <title>
+is what search engines truncate against.
+
+Usage:
+    python3 scripts/check-seo-lengths.py            # the five Bing-tracked posts
+    python3 scripts/check-seo-lengths.py --all      # every post
 """
 
 from __future__ import annotations
 
+import re
+import sys
+from pathlib import Path
+
 SUFFIX = " | Brian Baldock"
-TITLE_MAX = 60          # frontmatter title budget
-# Rendered <title> length at which SERP truncation typically starts. Google
-# truncates on PIXEL width (~580px) rather than characters, so this is a
-# guideline, not a hard rule -- roughly 70 characters for mixed-case text.
-# The site's existing titles run 49-79 chars, so treat >75 as the real problem
-# and anything under that as acceptable. Do NOT tighten good copy to hit an
-# invented number.
+TITLE_MAX = 60
+# SERP truncation is by PIXEL width (~580px), not characters, so these are
+# guidelines. Existing site titles run 49-79 chars. >75 is the real problem;
+# do NOT tighten good copy to hit an invented number.
 FULL_SOFT = 70
 FULL_MAX = 75
 DESC_MIN, DESC_MAX = 120, 160
 
-PROPOSED = [
-    ("edge-profile-pro-tips",
-     "Manage Multiple Microsoft 365 Tenants with Edge Profiles",
-     "Juggling several Microsoft 365 tenants? Set up separate Edge profiles for "
-     "work and personal accounts so you stop signing in and out all day."),
-    ("deploying-local-ai-inference-with-vllm-and-chatui-in-docker",
-     "Run vLLM in Docker: Self-Hosted LLM with a Chat UI",
-     "A working vLLM Docker setup with ChatUI and an NVIDIA GPU: compose file, "
-     "GPU passthrough, and the config that actually serves a model."),
-    ("win11arm-on-macos",
-     "Windows 11 ARM64 on Apple Silicon with VMware Fusion",
-     "Install Windows 11 ARM64 on an M-series Mac using VMware Fusion: VHDX to "
-     "VMDK conversion, QEMU via Homebrew, and getting VMware Tools to install "
-     "cleanly."),
-    ("lightningcopilot-salesforce-meets-copilotstudio",
-     "Embed Copilot Studio in Salesforce with Entra ID SSO",
-     "Put a Copilot Studio agent inside Salesforce Lightning (LWC) with Entra ID "
-     "single sign-on: MSAL auth, and a token flow that survives Locker Service."),
-    ("proxies-and-defender-for-endpoint",
-     "Defender for Endpoint Behind a Proxy: Configuration Guide",
-     "How to configure Microsoft Defender for Endpoint behind a proxy: registry "
-     "and netsh options, the URLs MDE needs reachable, and how to verify "
-     "connectivity."),
+# The posts with measurable Bing impression volume, per bing_blog_pages.py.
+TRACKED = [
+    "edge-profile-pro-tips",
+    "deploying-local-ai-inference-with-vllm-and-chatui-in-docker",
+    "win11arm-on-macos",
+    "lightningcopilot-salesforce-meets-copilotstudio",
+    "proxies-and-defender-for-endpoint",
 ]
+
+POSTS = Path(__file__).resolve().parent.parent / "src" / "content" / "posts"
+
+
+def field(text: str, name: str) -> str | None:
+    m = re.search(rf'^{name}:\s*"(.*)"\s*$', text, re.M)
+    return m.group(1) if m else None
 
 
 def main() -> int:
-    bad = 0
-    for slug, title, desc in PROPOSED:
-        full = title + SUFFIX
-        t_ok = len(title) <= TITLE_MAX
-        f_ok = len(full) <= FULL_MAX
-        d_ok = DESC_MIN <= len(desc) <= DESC_MAX
+    slugs = (
+        sorted(p.stem for p in POSTS.glob("*.md"))
+        if "--all" in sys.argv
+        else TRACKED
+    )
 
-        flag = "" if (t_ok and f_ok and d_ok) else "  <-- PROBLEM"
-        if flag:
-            bad += 1
-        print(f"{slug[:46]}{flag}")
-        print(f"   title {len(title):>3}/{TITLE_MAX}  "
-              f"rendered {len(full):>3}/{FULL_MAX}  desc {len(desc):>3}"
-              f"/{DESC_MIN}-{DESC_MAX}")
-        if not f_ok:
-            print(f"   rendered title EXCEEDS {FULL_MAX}: {full}")
-        elif len(full) > FULL_SOFT:
-            print(f"   note: rendered {len(full)} chars, may truncate on narrow SERPs")
-        if not d_ok:
-            print("   description out of range")
+    problems = 0
+    for slug in slugs:
+        path = POSTS / f"{slug}.md"
+        if not path.exists():
+            print(f"{slug}\n   MISSING: {path}")
+            problems += 1
+            continue
 
-    print(f"\n{len(PROPOSED) - bad}/{len(PROPOSED)} within limits")
-    return 1 if bad else 0
+        text = path.read_text()
+        title = field(text, "title")
+        desc = field(text, "description")
+
+        if title is None or desc is None:
+            print(f"{slug}\n   UNPARSED title/description (unquoted YAML?)")
+            problems += 1
+            continue
+
+        full = len(title) + len(SUFFIX)
+        bad = []
+        if len(title) > TITLE_MAX:
+            bad.append(f"title {len(title)}>{TITLE_MAX}")
+        if full > FULL_MAX:
+            bad.append(f"rendered {full}>{FULL_MAX}")
+        if not (DESC_MIN <= len(desc) <= DESC_MAX):
+            bad.append(f"desc {len(desc)} outside {DESC_MIN}-{DESC_MAX}")
+
+        mark = "FAIL" if bad else "ok  "
+        print(f"{mark} {slug}")
+        print(f"       title {len(title):>3}/{TITLE_MAX}  rendered {full:>3}/{FULL_MAX}  desc {len(desc):>3}/{DESC_MIN}-{DESC_MAX}")
+        if bad:
+            print(f"       -> {', '.join(bad)}")
+            problems += 1
+        elif full > FULL_SOFT:
+            print(f"       note: rendered {full} chars, may truncate on narrow SERPs")
+
+    total = len(slugs)
+    print(f"\n{total - problems}/{total} within limits")
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":

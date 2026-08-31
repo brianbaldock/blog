@@ -1,6 +1,6 @@
 ---
-title: "Proxies and Defender for Endpoint"
-description: "For my inaugural blog article on my official blog, I wanted to share my previous three blog articles (published on Microsoft official blogs) covering an..."
+title: "Defender for Endpoint Behind a Proxy: Article Roundup"
+description: "Three articles on Defender for Endpoint in disconnected and proxied networks, including which proxy config wins when WinHTTP and WinINET conflict."
 pubDate: "2023-07-09T16:58:24.895Z"
 cover: "/images/proxies-and-defender-for-endpoint/735bda22-21eb-4745-8c9b-1ed4e6f04518.jpeg"
 coverAlt: "Cover image for Proxies and Defender for Endpoint"
