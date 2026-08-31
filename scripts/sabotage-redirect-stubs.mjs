@@ -24,17 +24,23 @@ if (!existsSync(STUB)) {
 const runGate = () => {
   try {
     execFileSync('node', [GATE], { stdio: 'pipe' });
-    return 0;
+    return { code: 0, out: '' };
   } catch (e) {
-    return e.status ?? 1;
+    return {
+      code: e.status ?? 1,
+      out: `${e.stdout ?? ''}${e.stderr ?? ''}`,
+    };
   }
 };
 
 const original = readFileSync(STUB, 'utf8');
 const restore = () => writeFileSync(STUB, original, 'utf8');
 
-if (runGate() !== 0) {
+const clean = runGate();
+if (clean.code !== 0) {
   console.error('FAIL: clean tree does not pass — fix that before sabotaging');
+  console.error('--- gate output ---');
+  console.error(clean.out.trim() || '(no output)');
   process.exit(1);
 }
 console.log('clean tree passes\n');
@@ -63,7 +69,7 @@ for (const [name, mutate] of cases) {
     continue;
   }
   writeFileSync(STUB, mutated, 'utf8');
-  const code = runGate();
+  const { code } = runGate();
   restore();
   if (code === 0) {
     console.error(`  MISSED: ${name} — gate still passed`);
@@ -73,7 +79,7 @@ for (const [name, mutate] of cases) {
   }
 }
 
-const finalOk = runGate() === 0;
+const finalOk = runGate().code === 0;
 console.log(`\nclean tree passes again after restore: ${finalOk}`);
 console.log(`${caught}/${cases.length} defect classes caught`);
 process.exit(caught === cases.length && finalOk ? 0 : 1);
