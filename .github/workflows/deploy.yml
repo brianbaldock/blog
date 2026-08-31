@@ -47,6 +47,16 @@ jobs:
       - name: Verify redirect stubs carry real metadata
         run: npm run verify:stubs
 
+      # The JSON-LD @graph is the entity-disambiguation signal: one canonical
+      # Person node at a stable @id that every page references. Another Brian
+      # Baldock ranks for the bare name, so a silently broken graph costs the
+      # thing this site is actively trying to win. Prove, then run.
+      - name: Prove the JSON-LD gate can fail
+        run: npm run verify:jsonld:prove
+
+      - name: Verify structured data
+        run: npm run verify:jsonld
+
       - name: Install a11y tooling
         run: npm install --no-save pa11y-ci@^3 http-server@^14
 

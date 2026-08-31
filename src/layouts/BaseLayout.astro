@@ -17,6 +17,9 @@ interface Props {
     modifiedTime?: Date;
     tags?: string[];
   };
+  /** Marks this page as the canonical page *about* Brian (the About page).
+   *  Adds ProfilePage + mainEntityOfPage so the Person entity has one home. */
+  personPage?: boolean;
 }
 
 const {
@@ -26,45 +29,89 @@ const {
   canonicalUrl,
   noindex = false,
   article,
+  personPage = false,
 } = Astro.props;
 
-const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} | ${SITE.tagline}`;
+const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} | ${SITE.seoTagline}`;
 const canonical = canonicalUrl ?? new URL(Astro.url.pathname, SITE.url).toString();
 const ogImageUrl = new URL(ogImage, SITE.url).toString();
 const ogType = article ? 'article' : 'website';
 
-// Structured data (schema.org). BlogPosting on posts, WebSite elsewhere.
-// Authority (canonical) and image URLs are reused from the meta block above so
-// there is a single source of truth for absolute URLs.
-const author = { '@type': 'Person', name: SITE.author, url: SITE.authorUrl };
-const jsonLd = article
-  ? {
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: title,
-      description,
-      image: ogImageUrl,
-      datePublished: article.publishedTime.toISOString(),
-      dateModified: (article.modifiedTime ?? article.publishedTime).toISOString(),
-      author,
-      publisher: {
-        '@type': 'Person',
-        name: SITE.author,
-        url: SITE.url,
-        logo: { '@type': 'ImageObject', url: new URL('/favicon-512.png', SITE.url).toString() },
+// Structured data (schema.org), emitted as a single @graph so every page
+// references ONE canonical Person node by @id rather than restating a fresh
+// anonymous author object. That stable @id is the disambiguation signal: it
+// tells a search engine that the Brian Baldock authoring these posts is the
+// same entity as the one on the About page and on the linked profiles.
+const PERSON_ID = `${SITE.url}/#brian`;
+const WEBSITE_ID = `${SITE.url}/#website`;
+const aboutUrl = `${SITE.url}/about/`;
+
+const personNode = {
+  '@type': 'Person',
+  '@id': PERSON_ID,
+  name: SITE.author,
+  url: aboutUrl,
+  image: new URL(SITE.person.image, SITE.url).toString(),
+  jobTitle: SITE.person.jobTitle,
+  worksFor: { '@type': 'Organization', name: SITE.person.worksFor },
+  knowsAbout: SITE.person.knowsAbout,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: SITE.person.locality,
+    addressRegion: SITE.person.region,
+    addressCountry: SITE.person.country,
+  },
+  sameAs: Object.values(SITE.social),
+};
+
+const websiteNode = {
+  '@type': 'WebSite',
+  '@id': WEBSITE_ID,
+  name: SITE.title,
+  description: SITE.description,
+  url: SITE.url,
+  inLanguage: SITE.locale,
+  author: { '@id': PERSON_ID },
+  publisher: { '@id': PERSON_ID },
+};
+
+const pageNodes = article
+  ? [
+      {
+        '@type': 'BlogPosting',
+        '@id': `${canonical}#post`,
+        headline: title,
+        description,
+        image: ogImageUrl,
+        datePublished: article.publishedTime.toISOString(),
+        dateModified: (article.modifiedTime ?? article.publishedTime).toISOString(),
+        author: { '@id': PERSON_ID },
+        publisher: { '@id': PERSON_ID },
+        isPartOf: { '@id': WEBSITE_ID },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+        url: canonical,
+        ...(article.tags && article.tags.length ? { keywords: article.tags.join(', ') } : {}),
       },
-      mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
-      url: canonical,
-      ...(article.tags && article.tags.length ? { keywords: article.tags.join(', ') } : {}),
-    }
-  : {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: SITE.title,
-      description: SITE.description,
-      url: SITE.url,
-      author,
-    };
+    ]
+  : personPage
+    ? [
+        {
+          '@type': 'ProfilePage',
+          '@id': canonical,
+          url: canonical,
+          name: fullTitle,
+          description,
+          isPartOf: { '@id': WEBSITE_ID },
+          mainEntity: { '@id': PERSON_ID },
+          about: { '@id': PERSON_ID },
+        },
+      ]
+    : [];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [personNode, websiteNode, ...pageNodes],
+};
 // Escape '<' so a stray "</script>" in any field can't break out of the tag.
 const jsonLdString = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
 ---
