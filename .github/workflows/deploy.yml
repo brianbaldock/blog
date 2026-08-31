@@ -37,6 +37,16 @@ jobs:
       - name: Build site
         run: npm run build
 
+      # 98.4% of this blog's search impressions land on the legacy top-level
+      # slugs, not /posts/<slug>/. If those stubs regress to "Redirecting…"
+      # with no description, every one of those impressions loses its snippet.
+      # Prove the gate can fail, then run it.
+      - name: Prove the redirect-stub gate can fail
+        run: npm run verify:stubs:prove
+
+      - name: Verify redirect stubs carry real metadata
+        run: npm run verify:stubs
+
       - name: Install a11y tooling
         run: npm install --no-save pa11y-ci@^3 http-server@^14
 

@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "verify:stubs": "node scripts/verify-redirect-stubs.mjs",
+    "verify:stubs:prove": "node scripts/sabotage-redirect-stubs.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check"

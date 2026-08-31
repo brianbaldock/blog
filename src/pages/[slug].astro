@@ -27,26 +27,71 @@ export async function getStaticPaths() {
     for (const slug of oldSlugs) {
       if (seen.has(slug)) continue;
       seen.add(slug);
-      paths.push({ params: { slug }, props: { target } });
+      paths.push({
+        params: { slug },
+        props: {
+          target,
+          title: post.data.title,
+          description: post.data.description ?? '',
+          cover: post.data.cover ?? null,
+        },
+      });
     }
   }
 
   return paths;
 }
 
-const { target } = Astro.props;
+const { target, title, description, cover } = Astro.props;
 const canonical = new URL(target, SITE.url).toString();
+// Mirror BaseLayout exactly: same title suffix, same description fallback, same
+// og-image resolution. If the stub and the real post disagree about the title
+// of the same content, the mirroring is worse than useless.
+const fullTitle = `${title} | ${SITE.title}`;
+const desc = description || SITE.description;
+const ogImageUrl = new URL(cover ?? '/og-default.png', SITE.url).toString();
 ---
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Redirecting…</title>
+
+    {/*
+      These stubs are what Bing actually ranks: 98.4% of post impressions
+      (26,807 of 27,247) land here rather than on /posts/<slug>/, because the
+      Hashnode-era URLs are what the world links to. GitHub Pages cannot serve
+      a real 301, so a meta-refresh plus canonical is the only option.
+
+      The failure this fixes: the stub previously carried <title>Redirecting…</title>
+      and no description at all, so every one of those 26,807 impressions showed
+      a search snippet Bing had to invent from nothing. Mirroring the target
+      post's real title and description costs nothing, changes no URL, and gives
+      the ranked page an honest snippet.
+
+      Deliberately NOT noindex: these pages hold the inbound authority. Telling
+      Bing to drop them would discard the ranking, not transfer it.
+    */}
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
     <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:site_name" content={SITE.title} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={desc} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
     <meta http-equiv="refresh" content={`0; url=${target}`} />
   </head>
   <body>
-    <p>This page has moved to <a href={target}>{target}</a>.</p>
+    <p>
+      This page has moved to <a href={target}>{title}</a>.
+    </p>
   </body>
 </html>
