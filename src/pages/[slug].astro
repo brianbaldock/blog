@@ -17,7 +17,15 @@ import { SITE } from '../consts';
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
   const seen = new Set<string>();
-  const paths: { params: { slug: string }; props: { target: string } }[] = [];
+  const paths: {
+    params: { slug: string };
+    props: {
+      target: string;
+      title: string;
+      description: string;
+      cover: string | null;
+    };
+  }[] = [];
 
   for (const post of posts) {
     const target = `/posts/${post.id}/`;
