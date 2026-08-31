@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { ABOUT_META } from '../page-meta';
 ---
-<BaseLayout title="About" description="About Brian Baldock. Identity, security, and AI infrastructure, plus the line-cook habits that still run the workshop.">
+<BaseLayout personPage title={ABOUT_META.title} description={ABOUT_META.description}>
   <article class="container about">
     <h1>About</h1>
 
@@ -69,9 +70,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <h2>Find me elsewhere</h2>
     <ul class="elsewhere">
-      <li><a href="https://www.linkedin.com/in/brianbaldock/">LinkedIn</a></li>
-      <li><a href="https://github.com/brianbaldock">GitHub</a></li>
-      <li><a href="https://bsky.app/profile/brianbaldock.net">Bluesky</a></li>
+      <li><a rel="me" href="https://www.linkedin.com/in/brianbaldock/">LinkedIn</a></li>
+      <li><a rel="me" href="https://github.com/brianbaldock">GitHub</a></li>
+      <li><a rel="me" href="https://bsky.app/profile/brianbaldock.net">Bluesky</a></li>
+      <li><a rel="me" href="https://www.credly.com/users/brian-baldock">Credly</a></li>
     </ul>
 
     <h2>About this site</h2>

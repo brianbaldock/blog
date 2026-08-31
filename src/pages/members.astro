@@ -5,16 +5,14 @@
 // stubs do: this URL is what is indexed, and a page titled "Redirecting…" gives
 // the search result no snippet. Low traffic, but the fix is free.
 import { SITE } from '../consts';
+import { ABOUT_META } from '../page-meta';
 
 const target = '/about/';
 const canonical = new URL(target, SITE.url).toString();
-const fullTitle = `About | ${SITE.title}`;
-// Must match src/pages/about.astro's description exactly -- the gate
-// cross-checks stub against target, and two URLs for the same content
-// disagreeing about the snippet is its own defect.
-const desc =
-  'About Brian Baldock, Senior Software Engineer at Microsoft in Seattle. ' +
-  'Identity, security, and AI infrastructure, plus the line-cook habits that still run the workshop.';
+const fullTitle = `${ABOUT_META.title} | ${SITE.title}`;
+// Single source with about.astro. These previously duplicated the same string
+// and drifted; CI caught it via the stub-vs-target cross-check.
+const desc = ABOUT_META.description;
 ---
 <!doctype html>
 <html lang="en">
