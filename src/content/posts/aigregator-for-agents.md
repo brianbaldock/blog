@@ -10,7 +10,7 @@ tags:
   - "aigregator"
   - "llms-txt"
   - "open-content"
-draft: true
+draft: false
 ---
 
 AIgregator has been writing a daily AI news digest since May. Every morning it pulls from wires, lab blogs, arXiv, GitHub, Hugging Face and social sources, clusters the duplicate coverage, scores what's left, and writes short summaries that link back to the original reporting.
