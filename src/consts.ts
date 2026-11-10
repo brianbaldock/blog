@@ -9,7 +9,7 @@ export const SITE = {
     'Personal blog by Brian Baldock on security, AI/ML infrastructure, and the lessons that come from building in the open.',
   url: 'https://blog.brianbaldock.net',
   author: 'Brian Baldock',
-  authorUrl: 'https://www.linkedin.com/in/brianbaldock/',
+  authorUrl: 'https://www.linkedin.com/in/bbaldock',
   locale: 'en-US',
   navLinks: [
     { href: '/', label: 'Home' },
@@ -18,7 +18,7 @@ export const SITE = {
     { href: '/about/', label: 'About' },
   ],
   social: {
-    linkedin: 'https://www.linkedin.com/in/brianbaldock/',
+    linkedin: 'https://www.linkedin.com/in/bbaldock',
     github: 'https://github.com/brianbaldock',
     bluesky: 'https://bsky.app/profile/brianbaldock.net',
     credly: 'https://www.credly.com/users/brian-baldock',

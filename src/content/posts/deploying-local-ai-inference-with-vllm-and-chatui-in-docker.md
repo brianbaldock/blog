@@ -1557,6 +1557,6 @@ Self-hosting AI is a game-changer. The more control we have over our own tools, 
 
 ## **Want to Try This Yourself?**
 
-Everything in this article is reproducible, and I’d love to hear how it works for you! If you have any questions, improvements, or want to share your own builds, let’s connect. Drop a comment, or hit me up on [LinkedIn](https://www.linkedin.com/in/brianbaldock)!
+Everything in this article is reproducible, and I’d love to hear how it works for you! If you have any questions, improvements, or want to share your own builds, let’s connect. Drop a comment, or hit me up on [LinkedIn](https://www.linkedin.com/in/bbaldock)!
 
 Here’s to building cool things, breaking them, fixing them again, and learning along the way!
